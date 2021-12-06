@@ -1,4 +1,4 @@
-defmodule Oli.Lti_1p3.Tool.Registration do
+defmodule Oli.Lti.Registration do
   use Ecto.Schema
   import Ecto.Changeset
 
