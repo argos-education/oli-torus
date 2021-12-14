@@ -6,6 +6,8 @@
 
 - Fix a bug that prevented editing internal links when only one other page exists
 - Fix a bug that prevented content from being added during remix
+- Fix curriculum page link styling
+- Redesign text editor formatting toolbar to address flickering issues
 
 ### Enhancements
 

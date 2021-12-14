@@ -43,7 +43,7 @@ defmodule OliWeb.Curriculum.EntryLive do
                   @project.slug,
                   @child.slug
                 )) do %>
-                <i class="las la-edit"></i> Edit
+                <i class="las la-edit mr-1"></i>Edit
             <% end %>
           <% end %>
           <%= if @editor do %>
