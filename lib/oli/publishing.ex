@@ -8,6 +8,7 @@ defmodule Oli.Publishing do
   alias Oli.Authoring.Locks
   alias Oli.Delivery.Sections.Section
   alias Oli.Authoring.Course.ProjectResource
+  alias Oli.Resources
   alias Oli.Resources.{Revision, ResourceType}
   alias Oli.Publishing.{Publication, PublishedResource}
   alias Oli.Institutions.Institution
@@ -689,10 +690,13 @@ defmodule Oli.Publishing do
     changes =
       Map.keys(all_resource_revisions_p2)
       |> Enum.filter(fn id -> !Map.has_key?(visited, id) end)
+      |> Enum.filter(fn id -> activity_wasnt_removed(id, all_resource_revisions_p2) end)
       |> Enum.reduce(changes, fn id, acc ->
         {res_p2, rev_p2} = all_resource_revisions_p2[id]
         Map.put_new(acc, id, {:added, %{resource: res_p2, revision: rev_p2}})
       end)
+
+    IO.inspect(changes, label: "Changes")
 
     {edition, major, minor} =
       case p1 do
@@ -704,6 +708,28 @@ defmodule Oli.Publishing do
       end
 
     {version_change(changes, {edition, major, minor}), changes}
+  end
+
+  # When an activity is added to a page, a new revision is created for
+  # the activity. When it is removed from the page, the :deleted
+  # field for the revision is not changed -- it is simply unattached.
+  # We filter out activities that were added and removed in the same publication.
+  defp activity_wasnt_removed(rev_id, all_revs) do
+    rev = elem(all_revs[rev_id], 1)
+
+    if rev.resource_type_id == ResourceType.get_id_by_type("activity") do
+      all_revs
+      |> Map.values()
+      # map to the revision
+      |> Enum.map(&elem(&1, 1))
+      # map to the referenced activity ids
+      |> Enum.flat_map(&Resources.activity_references(&1))
+      # pass the activity revision through if it's attached in an updated page
+      |> Enum.member?(rev_id)
+      |> IO.inspect(label: "Should allow")
+    else
+      true
+    end
   end
 
   # classify the changes as either :major, :minor, or :no_changes and return the new version number
