@@ -12,7 +12,7 @@
 - Fix Open and Free section creation when done through the admin panel
 - Fix an issue where LTI 1.3 deployments should represent individual institutions
 - Move LTI 1.3 registrations listing to live view table with search, sorting and paging
-
+- Fix a bug on the publication page where activities that were removed were showing up as "added"
 ### Enhancements
 
 - Send total points available during LMS line item creation
