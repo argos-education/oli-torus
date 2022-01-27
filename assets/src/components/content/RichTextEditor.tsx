@@ -1,20 +1,22 @@
 import { useAuthoringElementContext } from 'components/activities/AuthoringElement';
 import { ErrorBoundary } from 'components/common/ErrorBoundary';
-import { CommandContext } from 'components/editing/elements/commands/interfaces';
+import { CommandContext } from 'components/editing/nodes/commands/interfaces';
 import { Editor } from 'components/editing/editor/Editor';
 import { NormalizerContext } from 'components/editing/editor/normalizers/normalizer';
 import { getToolbarForContentType } from 'components/editing/toolbar/utils';
 import { ProjectSlug } from 'data/types';
 import React from 'react';
-import { Descendant, Editor as SlateEditor, Operation } from 'slate';
+import { Editor as SlateEditor, Operation } from 'slate';
 import { classNames } from 'utils/classNames';
+import { TNode } from '@udecode/plate';
 
 type Props = {
+  id: string;
   projectSlug: ProjectSlug;
   editMode: boolean;
   className?: string;
-  value: Descendant[];
-  onEdit: (value: Descendant[], editor: SlateEditor, operations: Operation[]) => void;
+  value: TNode[];
+  onEdit: (value: TNode[]) => void;
   placeholder?: string;
   onRequestMedia?: any;
   style?: React.CSSProperties;
@@ -30,11 +32,12 @@ export const RichTextEditor: React.FC<Props> = (props) => {
     <div className={classNames(['rich-text-editor', props.className])}>
       <ErrorBoundary>
         <Editor
+          id={props.id}
           normalizerContext={props.normalizerContext}
           commandContext={props.commandContext || { projectSlug: props.projectSlug }}
           editMode={props.editMode}
           value={value}
-          onEdit={(value, editor, operations) => props.onEdit(value, editor, operations)}
+          onEdit={props.onEdit}
           toolbarInsertDescs={[]}
           placeholder={props.placeholder}
           style={props.style}

@@ -1,4 +1,4 @@
-import * as ModelElements from 'data/content/model/elements/types';
+import * as ModelElements from 'data/content/model/nodes/types';
 
 export type MediaLibraryOption = ModelElements.Audio | ModelElements.Image;
 

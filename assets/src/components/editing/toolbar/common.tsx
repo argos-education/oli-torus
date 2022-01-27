@@ -3,7 +3,7 @@ import * as Popover from 'react-tiny-popover';
 import { Editor } from 'slate';
 import { useSlate } from 'slate-react';
 import { classNames } from 'utils/classNames';
-import { Command, CommandContext } from '../elements/commands/interfaces';
+import { Command, CommandContext } from '../nodes/commands/interfaces';
 
 const buttonContent = (icon: string, description: string | undefined) =>
   icon ? (

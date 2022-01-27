@@ -7,10 +7,11 @@ import { Description } from 'components/misc/Description';
 import { Checkmark } from 'components/misc/icons/Checkmark';
 import { Cross } from 'components/misc/icons/Cross';
 import { ProjectSlug } from 'data/types';
-import { Descendant } from 'slate';
+import { TNode } from 'slate';
+import { TNode } from '@udecode/plate';
 
 interface FeedbackProps extends ModelEditorProps {
-  onEditResponse: (score: number, content: Descendant[]) => void;
+  onEditResponse: (score: number, content: TNode[]) => void;
   projectSlug: ProjectSlug;
   onRequestMedia: any;
 }

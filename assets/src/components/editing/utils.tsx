@@ -1,9 +1,9 @@
+import { TNode } from '@udecode/plate';
 import { RichText } from 'components/activities/types';
-import { ModelElement } from 'data/content/model/elements/types';
+import { ModelElement } from 'data/content/model/nodes/types';
 import { schema } from 'data/content/model/schema';
 import { Mark } from 'data/content/model/text';
 import {
-  Descendant,
   Editor,
   Element,
   InsertNodeOperation,
@@ -79,9 +79,9 @@ export function isMarkActive(editor: Editor, mark: Mark): boolean {
 }
 
 // Extracts the text from a hierarchy of nodes
-export function toSimpleText(nodes: RichText | Descendant[]): string;
+export function toSimpleText(nodes: RichText | TNode[]): string;
 export function toSimpleText(node: Node): string;
-export function toSimpleText(node: Node | RichText | Descendant[]): string {
+export function toSimpleText(node: Node | RichText | TNode[]): string {
   if (Array.isArray(node)) return toSimpleTextHelper({ children: node } as ModelElement, '');
   return toSimpleTextHelper(node, '');
 }

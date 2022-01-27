@@ -15,8 +15,8 @@ import {
 } from 'components/activities/types';
 import { Responses } from 'data/activities/model/responses';
 import { isTextRule } from 'data/activities/model/rules';
-import { Model } from 'data/content/model/elements/factories';
-import { InputRef, Paragraph } from 'data/content/model/elements/types';
+import { Model } from 'data/content/model/nodes/factories';
+import { InputRef, Paragraph } from 'data/content/model/nodes/types';
 import { elementsOfType } from 'data/content/utils';
 import React from 'react';
 import { clone } from 'utils/common';

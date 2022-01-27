@@ -6,7 +6,7 @@ import {
   isActive,
   isTopLevel,
 } from 'components/editing/utils';
-import { CommandDesc } from 'components/editing/elements/commands/interfaces';
+import { CommandDesc } from 'components/editing/nodes/commands/interfaces';
 import { AddCallback } from 'components/content/add_resource_content/AddResourceContent';
 import { ActivityEditorMap, EditorDesc } from 'data/content/editors';
 import {
@@ -19,8 +19,8 @@ import { ActivityModelSchema } from 'components/activities/types';
 import { ActivityEditContext } from 'data/content/activity';
 import guid from 'utils/guid';
 import * as Persistence from 'data/persistence/activity';
-import { createButtonCommandDesc } from 'components/editing/elements/commands/commands';
-import { ModelElement } from 'data/content/model/elements/types';
+import { createButtonCommandDesc } from 'components/editing/nodes/commands/commands';
+import { ModelElement } from 'data/content/model/nodes/types';
 
 type ToolbarContentType = 'all' | 'small';
 // Can be extended to provide different insertion toolbar options based on resource type

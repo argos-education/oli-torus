@@ -1,5 +1,5 @@
 import { AuthoringButtonConnected } from 'components/activities/common/authoring/AuthoringButton';
-import { Model } from 'data/content/model/elements/factories';
+import { Model } from 'data/content/model/nodes/factories';
 import React from 'react';
 import { Editor, Transforms } from 'slate';
 import { ReactEditor, useSlateStatic } from 'slate-react';

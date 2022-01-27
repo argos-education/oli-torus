@@ -6,7 +6,7 @@ import { RichTextEditorConnected } from 'components/content/RichTextEditor';
 import { Card } from 'components/misc/Card';
 import { ID } from 'data/content/model/other';
 import React from 'react';
-import { Descendant } from 'slate';
+import { TNode } from 'slate';
 
 interface HintsAuthoringProps {
   addOne: () => void;
@@ -53,7 +53,7 @@ const DeerInHeadlightsHint: React.FC<HintProps> = ({ hint, updateOne }) => (
 
 interface CognitiveProps {
   hints: Hint[];
-  updateOne: (id: ID, content: Descendant[]) => void;
+  updateOne: (id: ID, content: TNode[]) => void;
   removeOne: (id: ID) => void;
   addOne: () => void;
   title?: React.ReactNode;
@@ -76,6 +76,7 @@ export const CognitiveHints: React.FC<CognitiveProps> = ({
             {index + 1}.
           </div>
           <RichTextEditorConnected
+            id={hint.id}
             placeholder={placeholder || 'Explain how to solve the problem'}
             className="mb-2 flex-grow-1"
             value={hint.content}

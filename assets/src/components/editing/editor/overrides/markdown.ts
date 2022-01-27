@@ -2,12 +2,12 @@ import { Range, Editor, Transforms } from 'slate';
 import {
   olCommandDesc as olCmd,
   ulCommandDesc as ulCmd,
-} from 'components/editing/elements/commands/ListsCmd';
-import { commandDesc as quoteCmd } from 'components/editing/elements/commands/BlockquoteCmd';
+} from 'data/content/model/nodes/list/ListsCmd';
+import { commandDesc as quoteCmd } from 'components/editing/nodes/commands/BlockquoteCmd';
 import { ReactEditor } from 'slate-react';
 import { isTopLevel } from 'components/editing/utils';
-import { CommandContext } from 'components/editing/elements/commands/interfaces';
-import { codeBlockInsertDesc } from 'components/editing/elements/commands/BlockcodeCmd';
+import { CommandContext } from 'components/editing/nodes/commands/interfaces';
+import { codeBlockInsertDesc } from 'components/editing/nodes/commands/BlockcodeCmd';
 
 const SHORTCUTS = {
   '#': 'h1',

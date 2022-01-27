@@ -1,4 +1,4 @@
-import { CommandDesc } from 'components/editing/elements/commands/interfaces';
+import { CommandDesc } from 'components/editing/nodes/commands/interfaces';
 import { useToolbar } from 'components/editing/toolbar/useToolbar';
 import React from 'react';
 import { useSlate } from 'slate-react';

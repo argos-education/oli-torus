@@ -4,12 +4,12 @@ import { RichTextEditorConnected } from 'components/content/RichTextEditor';
 import { Response } from 'components/activities/types';
 import { Card } from 'components/misc/Card';
 import { RemoveButtonConnected } from 'components/activities/common/authoring/removeButton/RemoveButton';
-import { Descendant } from 'slate';
+import { TNode } from 'slate';
 
 interface Props {
   title: React.ReactNode;
   response: Response;
-  updateFeedback: (responseId: ID, content: Descendant[]) => void;
+  updateFeedback: (responseId: ID, content: TNode[]) => void;
   removeResponse: (responseId: ID) => void;
 }
 export const ResponseCard: React.FC<Props> = (props) => {
@@ -25,6 +25,7 @@ export const ResponseCard: React.FC<Props> = (props) => {
       <Card.Content>
         {props.children}
         <RichTextEditorConnected
+          id={props.response.id}
           placeholder="Explain why the student might have arrived at this answer"
           value={props.response.feedback.content}
           onEdit={(content) => props.updateFeedback(props.response.id, content)}

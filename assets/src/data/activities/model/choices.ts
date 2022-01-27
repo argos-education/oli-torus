@@ -1,6 +1,6 @@
 import { Choice, PostUndoable } from 'components/activities/types';
 import { List } from 'data/activities/model/list';
-import { Descendant } from 'slate';
+import { TNode } from '@udecode/plate';
 import { Operations } from 'utils/pathOperations';
 
 const PATH = '$..choices';
@@ -11,7 +11,7 @@ export const Choices = {
 
   ...List<Choice>(PATH),
 
-  setContent(id: string, content: Descendant[]) {
+  setContent(id: string, content: TNode[]) {
     return (model: any, _post: PostUndoable) => {
       Operations.apply(model, Operations.replace(`$..choices[?(@.id==${id})].content`, content));
     };

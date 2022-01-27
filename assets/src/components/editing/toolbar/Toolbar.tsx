@@ -1,5 +1,5 @@
 import React, { PropsWithChildren } from 'react';
-import { CommandContext } from '../elements/commands/interfaces';
+import { CommandContext } from '../nodes/commands/interfaces';
 import { ToolbarContext, ToolbarContextT } from 'components/editing/toolbar/useToolbar';
 
 /*

@@ -1,4 +1,4 @@
-import { Model } from 'data/content/model/elements/factories';
+import { Model } from 'data/content/model/nodes/factories';
 import { Editor, Element, Path, Transforms } from 'slate';
 
 export const normalize = (editor: Editor, node: Editor, path: Path) => {

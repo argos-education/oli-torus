@@ -5,11 +5,11 @@ import { Hint } from '../types';
 import { Description } from 'components/misc/Description';
 import { CloseButton } from 'components/misc/CloseButton';
 import { ProjectSlug } from 'data/types';
-import { Descendant } from 'slate';
+import { TNode } from '@udecode/plate';
 
 interface HintsProps {
   onaddCognitiveHint: () => void;
-  onEditHint: (id: string, content: Descendant[]) => void;
+  onEditHint: (id: string, content: TNode[]) => void;
   onRemoveHint: (id: string) => void;
   projectSlug: ProjectSlug;
   hints: Hint[];
@@ -38,6 +38,7 @@ export const Hints = ({
         confused
       </Description>
       <RichTextEditor
+        id={deerInHeadlightsHint.id}
         className="mb-3"
         editMode={editMode}
         value={deerInHeadlightsHint.content}
@@ -58,6 +59,7 @@ export const Hints = ({
           </Description>
           <div className="d-flex mb-3">
             <RichTextEditor
+              id={hint.id}
               editMode={editMode}
               value={hint.content}
               projectSlug={projectSlug}
@@ -79,6 +81,7 @@ export const Hints = ({
         &quot;Bottom out&quot; hint - explain the answer for students who are still lost
       </Description>
       <RichTextEditor
+        id={bottomOutHint.id}
         className="mb-3"
         projectSlug={projectSlug}
         editMode={editMode}

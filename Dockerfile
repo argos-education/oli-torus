@@ -1,4 +1,4 @@
-FROM elixir:1.12
+FROM elixir:1.13
 
 # use bash as shell
 SHELL ["/bin/bash", "-c"]

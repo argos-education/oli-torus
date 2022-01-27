@@ -1,6 +1,6 @@
 import { Transforms, Path, Editor, Element } from 'slate';
-import { Model } from 'data/content/model/elements/factories';
-import { ModelElement } from 'data/content/model/elements/types';
+import { Model } from 'data/content/model/nodes/factories';
+import { ModelElement } from 'data/content/model/nodes/types';
 import { FormattedText } from 'data/content/model/text';
 
 export const normalize = (editor: Editor, node: ModelElement | FormattedText, path: Path) => {

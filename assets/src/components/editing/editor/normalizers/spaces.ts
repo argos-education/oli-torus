@@ -1,5 +1,5 @@
-import { Model } from 'data/content/model/elements/factories';
-import { ModelElement } from 'data/content/model/elements/types';
+import { Model } from 'data/content/model/nodes/factories';
+import { ModelElement } from 'data/content/model/nodes/types';
 import { FormattedText } from 'data/content/model/text';
 import * as Immutable from 'immutable';
 import { Editor, Element, Path, Transforms } from 'slate';

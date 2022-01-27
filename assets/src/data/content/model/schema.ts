@@ -4,7 +4,7 @@ const toObj = (arr: string[]): Record<string, boolean> =>
     return p;
   }, {} as Record<string, boolean>);
 
-const header = {
+const heading = {
   isVoid: false,
   isBlock: true,
   isTopLevel: true,
@@ -57,12 +57,12 @@ export const schema: Schema = {
     isTopLevel: true,
     validChildren: toObj(['input_ref']),
   },
-  h1: header,
-  h2: header,
-  h3: header,
-  h4: header,
-  h5: header,
-  h6: header,
+  h1: heading,
+  h2: heading,
+  h3: heading,
+  h4: heading,
+  h5: heading,
+  h6: heading,
   img: media,
   youtube: media,
   audio: media,

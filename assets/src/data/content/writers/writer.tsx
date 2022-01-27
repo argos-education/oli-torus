@@ -1,4 +1,4 @@
-import { ModelElement } from 'data/content/model/elements/types';
+import { ModelElement } from 'data/content/model/nodes/types';
 import React from 'react';
 import { Text } from 'slate';
 import { WriterContext } from './context';

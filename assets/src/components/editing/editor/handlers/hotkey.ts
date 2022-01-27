@@ -1,8 +1,8 @@
 import isHotkey from 'is-hotkey';
-import { toggleMark } from 'components/editing/elements/commands/commands';
-import { commandDesc as linkCmd } from 'components/editing/elements/commands/LinkCmd';
+import { toggleMark } from 'components/editing/nodes/commands/commands';
+import { commandDesc as linkCmd } from 'components/editing/nodes/commands/LinkCmd';
 import { Editor, Element, Node } from 'slate';
-import { CommandContext } from 'components/editing/elements/commands/interfaces';
+import { CommandContext } from 'components/editing/nodes/commands/interfaces';
 
 const isBoldHotkey = isHotkey('mod+b');
 const isItalicHotkey = isHotkey('mod+i');

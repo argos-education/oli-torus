@@ -102,8 +102,6 @@ $(() => {
       return ($(e.target) as any).popover('toggle');
     }
   });
-
-  (window as any).hljs.highlightAll();
 });
 
 declare global {

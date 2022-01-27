@@ -6,14 +6,14 @@ import { Draggable } from 'components/common/DraggableColumn';
 import { RichTextEditorConnected } from 'components/content/RichTextEditor';
 import { RemoveButtonConnected } from 'components/activities/common/authoring/removeButton/RemoveButton';
 import { toSimpleText } from 'components/editing/utils';
-import { Descendant } from 'slate';
+import { TNode } from '@udecode/plate';
 
 interface Props {
   icon: React.ReactNode | ((choice: Choice, index: number) => React.ReactNode);
   choices: Choice[];
   addOne: () => void;
   setAll: (choices: Choice[]) => void;
-  onEdit: (id: string, content: Descendant[]) => void;
+  onEdit: (id: string, content: TNode[]) => void;
   onRemove: (id: string) => void;
   simpleText?: boolean;
 }
@@ -46,6 +46,7 @@ export const Choices: React.FC<Props> = ({
                   />
                 ) : (
                   <RichTextEditorConnected
+                    id={choice.id}
                     style={{ flexGrow: 1, cursor: 'text' }}
                     placeholder="Answer choice"
                     value={choice.content}

@@ -1,4 +1,4 @@
-import { ModelElement } from 'data/content/model/elements/types';
+import { ModelElement } from 'data/content/model/nodes/types';
 import { schema } from 'data/content/model/schema';
 import { FormattedText } from 'data/content/model/text';
 import { Editor, Element, Node, Path, Transforms } from 'slate';

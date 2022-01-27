@@ -1,4 +1,4 @@
-import { CommandDesc } from 'components/editing/elements/commands/interfaces';
+import { CommandDesc } from 'components/editing/nodes/commands/interfaces';
 import { ButtonContent } from 'components/editing/toolbar/buttons/shared';
 import { useToolbar } from 'components/editing/toolbar/useToolbar';
 import React from 'react';

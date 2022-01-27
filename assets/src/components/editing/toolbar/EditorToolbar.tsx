@@ -1,9 +1,9 @@
-import { CodeLanguages } from 'components/editing/elements/blockcode/codeLanguages';
-import { codeLanguageDesc } from 'components/editing/elements/commands/BlockcodeCmd';
-import { createButtonCommandDesc } from 'components/editing/elements/commands/commands';
-import { CommandContext, CommandDesc } from 'components/editing/elements/commands/interfaces';
-import { listSettings } from 'components/editing/elements/commands/ListsCmd';
-import { headingLevelDesc, headingTypeDescs } from 'components/editing/elements/commands/TitleCmd';
+import { CodeLanguages } from 'components/editing/nodes/blockcode/codeLanguages';
+import { codeLanguageDesc } from 'components/editing/nodes/commands/BlockcodeCmd';
+import { createButtonCommandDesc } from 'components/editing/nodes/commands/commands';
+import { CommandContext, CommandDesc } from 'components/editing/nodes/commands/interfaces';
+import { listSettings } from 'data/content/model/nodes/list/ListsCmd';
+import { headingLevelDesc, headingTypeDescs } from 'components/editing/nodes/commands/TitleCmd';
 import { CommandButton } from 'components/editing/toolbar/buttons/CommandButton';
 import { DescriptiveButton } from 'components/editing/toolbar/buttons/DescriptiveButton';
 import { DropdownButton } from 'components/editing/toolbar/buttons/DropdownButton';
@@ -95,7 +95,7 @@ export const EditorToolbar = (props: Props) => {
                     { language: prettyName },
                     { at, match: (e) => Element.isElement(e) && e.type === 'code' },
                   );
-                  (window as any)?.hljs.highlightAll();
+                  // (window as any)?.hljs.highlightAll();
                 },
               })}
             />

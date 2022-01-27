@@ -3,7 +3,7 @@ import { KeyboardEvent } from 'react';
 import { getNearestBlock } from 'components/editing/utils';
 import { ReactEditor } from 'slate-react';
 import { schema, SchemaConfig } from 'data/content/model/schema';
-import { Model } from 'data/content/model/elements/factories';
+import { Model } from 'data/content/model/nodes/factories';
 
 export const onKeyDown = (editor: Editor, e: KeyboardEvent) => {
   if (e.key === 'Enter') {

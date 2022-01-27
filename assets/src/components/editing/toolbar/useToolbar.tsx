@@ -1,4 +1,4 @@
-import { CommandContext } from 'components/editing/elements/commands/interfaces';
+import { CommandContext } from 'components/editing/nodes/commands/interfaces';
 import React from 'react';
 
 export interface ToolbarContextT {

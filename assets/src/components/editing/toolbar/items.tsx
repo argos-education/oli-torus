@@ -1,24 +1,24 @@
-import { commandDesc as quoteCmd } from 'components/editing/elements/commands/BlockquoteCmd';
+import { commandDesc as quoteCmd } from 'components/editing/nodes/commands/BlockquoteCmd';
 import {
   createButtonCommandDesc,
   createToggleFormatCommand as format,
   switchType,
-} from 'components/editing/elements/commands/commands';
-import { CommandDesc } from 'components/editing/elements/commands/interfaces';
-import { commandDesc as linkCmd } from 'components/editing/elements/commands/LinkCmd';
-import { ulCommandDesc as ulCmd } from 'components/editing/elements/commands/ListsCmd';
+} from 'components/editing/nodes/commands/commands';
+import { CommandDesc } from 'components/editing/nodes/commands/interfaces';
+import { commandDesc as linkCmd } from 'components/editing/nodes/commands/LinkCmd';
+import { ulCommandDesc as ulCmd } from 'data/content/model/nodes/list/ListsCmd';
 import { isActive } from 'components/editing/utils';
 import { SlateEditor } from 'data/content/model/slate';
-import { audioCmdDescBuilder } from 'components/editing/elements/commands/AudioCmd';
-import { imgCmdDescBuilder } from 'components/editing/elements/commands/ImageCmd';
-import { tableCommandDesc } from 'components/editing/elements/commands/table/TableCmd';
-import { webpageCmdDesc } from 'components/editing/elements/commands/WebpageCmd';
-import { ytCmdDesc } from 'components/editing/elements/commands/YoutubeCmd';
-import { popupCmdDesc } from 'components/editing/elements/commands/PopupCmd';
+import { audioCmdDescBuilder } from 'components/editing/nodes/commands/AudioCmd';
+import { imgCmdDescBuilder } from 'components/editing/nodes/commands/ImageCmd';
+import { tableCommandDesc } from 'components/editing/nodes/commands/table/TableCmd';
+import { webpageCmdDesc } from 'components/editing/nodes/commands/WebpageCmd';
+import { ytCmdDesc } from 'components/editing/nodes/commands/YoutubeCmd';
+import { popupCmdDesc } from 'components/editing/nodes/commands/PopupCmd';
 import {
   codeBlockInsertDesc,
   codeBlockToggleDesc,
-} from 'components/editing/elements/commands/BlockcodeCmd';
+} from 'components/editing/nodes/commands/BlockcodeCmd';
 
 // const precondition = (editor: SlateEditor) => {
 //   return isTopLevel(editor) && isActive(editor, Object.keys(parentTextTypes));

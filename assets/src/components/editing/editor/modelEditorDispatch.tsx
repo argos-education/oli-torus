@@ -1,22 +1,22 @@
-import { AudioEditor } from 'components/editing/elements/audio/Editor';
-import { CodeEditor } from 'components/editing/elements/blockcode/Editor';
-import { BlockQuoteEditor } from 'components/editing/elements/blockquote/Editor';
-import { InputRefEditor } from 'components/editing/elements/inputref/Editor';
-import { LinkEditor } from 'components/editing/elements/link/Editor';
-import { PopupEditor } from 'components/editing/elements/popup/Editor';
-import { TableEditor } from 'components/editing/elements/table/TableEditor';
-import { TdEditor } from 'components/editing/elements/table/TdEditor';
-import { ThEditor } from 'components/editing/elements/table/ThEditor';
-import { TrEditor } from 'components/editing/elements/table/TrEditor';
-import { WebpageEditor } from 'components/editing/elements/webpage/Editor';
-import { YouTubeEditor } from 'components/editing/elements/youtube/Editor';
-import * as ContentModel from 'data/content/model/elements/types';
+import { AudioEditor } from 'components/editing/nodes/audio/Editor';
+import { CodeEditor } from 'components/editing/nodes/blockcode/Editor';
+import { BlockQuoteEditor } from 'components/editing/nodes/blockquote/Editor';
+import { InputRefEditor } from 'components/editing/nodes/inputref/Editor';
+import { LinkEditor } from 'components/editing/nodes/link/Editor';
+import { PopupEditor } from 'components/editing/nodes/popup/Editor';
+import { TableEditor } from 'components/editing/nodes/table/TableEditor';
+import { TdEditor } from 'components/editing/nodes/table/TdEditor';
+import { ThEditor } from 'components/editing/nodes/table/ThEditor';
+import { TrEditor } from 'components/editing/nodes/table/TrEditor';
+import { WebpageEditor } from 'components/editing/nodes/webpage/Editor';
+import { YouTubeEditor } from 'components/editing/nodes/youtube/Editor';
+import * as ContentModel from 'data/content/model/nodes/types';
 import { Mark } from 'data/content/model/text';
 import * as React from 'react';
 import { RenderElementProps } from 'slate-react';
-import { CommandContext } from '../elements/commands/interfaces';
-import { ImageEditor } from '../elements/image/Editor';
-import { EditorProps } from '../elements/interfaces';
+import { CommandContext } from '../nodes/commands/interfaces';
+import { ImageEditor } from '../nodes/image/Editor';
+import { EditorProps } from '../nodes/interfaces';
 
 export function editorFor(
   model: ContentModel.ModelElement,

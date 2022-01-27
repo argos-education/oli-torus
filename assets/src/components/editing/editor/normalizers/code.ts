@@ -1,6 +1,6 @@
 import { Transforms, Node, Path, Editor, Element, Text } from 'slate';
-import { Model } from 'data/content/model/elements/factories';
-import { ModelElement } from 'data/content/model/elements/types';
+import { Model } from 'data/content/model/nodes/factories';
+import { ModelElement } from 'data/content/model/nodes/types';
 import { FormattedText } from 'data/content/model/text';
 import { schema } from 'data/content/model/schema';
 import guid from 'utils/guid';

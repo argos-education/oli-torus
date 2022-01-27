@@ -23,13 +23,13 @@ import { List } from 'data/activities/model/list';
 import { getCorrectResponse, Responses } from 'data/activities/model/responses';
 import { matchRule } from 'data/activities/model/rules';
 import { getByUnsafe, getPartById, getParts } from 'data/activities/model/utils';
-import { InputRef } from 'data/content/model/elements/types';
-import { Descendant, Editor, Element, Operation } from 'slate';
+import { InputRef } from 'data/content/model/nodes/types';
+import { TNode, Editor, Element, Operation } from 'slate';
 import { clone } from 'utils/common';
 import { Operations } from 'utils/pathOperations';
 
 export const MultiInputActions = {
-  editStemAndPreviewText(content: Descendant[], editor: Editor, operations: Operation[]) {
+  editStemAndPreviewText(content: TNode[], editor: Editor, operations: Operation[]) {
     return (model: MultiInputSchema, post: PostUndoable) => {
       const removedInputRefs = elementsRemoved<InputRef>(operations, 'input_ref');
 

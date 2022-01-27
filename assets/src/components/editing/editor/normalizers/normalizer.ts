@@ -2,9 +2,9 @@ import { normalize as tableNormalize } from 'components/editing/editor/normalize
 import { normalize as rootNormalize } from 'components/editing/editor/normalizers/root';
 import { normalize as blockNormalize } from 'components/editing/editor/normalizers/block';
 import { normalize as spacesNormalize } from 'components/editing/editor/normalizers/spaces';
-import { normalize as listNormalize } from 'components/editing/editor/normalizers/lists';
+import { normalize as listNormalize } from 'data/content/model/nodes/list/listsNormalize';
 import { normalize as codeNormalize } from 'components/editing/editor/normalizers/code';
-import { Model } from 'data/content/model/elements/factories';
+import { Model } from 'data/content/model/nodes/factories';
 import { Editor, Element, Node, NodeEntry, Path, Text, Transforms } from 'slate';
 
 export interface NormalizerContext {

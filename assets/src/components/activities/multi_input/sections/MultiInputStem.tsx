@@ -3,9 +3,9 @@ import { MultiInputActions } from 'components/activities/multi_input/actions';
 import { MultiInputSchema } from 'components/activities/multi_input/schema';
 import { InputRefToolbar } from 'components/activities/multi_input/sections/InputRefToolbar';
 import { RichTextEditorConnected } from 'components/content/RichTextEditor';
-import { CommandContext } from 'components/editing/elements/commands/interfaces';
+import { CommandContext } from 'components/editing/nodes/commands/interfaces';
 import { elementsRemoved } from 'components/editing/utils';
-import { InputRef } from 'data/content/model/elements/types';
+import { InputRef } from 'data/content/model/nodes/types';
 import React from 'react';
 import { Editor } from 'slate';
 import { ReactEditor } from 'slate-react';
@@ -31,6 +31,7 @@ export const MultiInputStem: React.FC<Props> = (props) => {
   return (
     <div className="flex-grow-1 mb-3">
       <RichTextEditorConnected
+        id={props.selectedInputRef.id}
         normalizerContext={{ whitelist: ['input_ref'] }}
         value={model.stem.content}
         onEdit={(content, editor, operations) => {

@@ -1,10 +1,10 @@
 import React from 'react';
-import { Descendant } from 'slate';
+import { TNode } from '@udecode/plate';
 import { StructuredContent } from 'data/content/resource';
 import { Editor } from 'components/editing/editor/Editor';
 import { ProjectSlug } from 'data/types';
 import { ErrorBoundary } from 'components/common/ErrorBoundary';
-import { CommandDesc, ToolbarItem } from 'components/editing/elements/commands/interfaces';
+import { CommandDesc, ToolbarItem } from 'components/editing/nodes/commands/interfaces';
 
 export type StructuredContentEditor = {
   editMode: boolean; // Whether or not we can edit
@@ -17,7 +17,7 @@ export type StructuredContentEditor = {
 // The resource editor for content
 export const StructuredContentEditor = (props: StructuredContentEditor) => {
   const onEdit = React.useCallback(
-    (children: Descendant[]) => {
+    (children: TNode[]) => {
       props.onEdit(Object.assign({}, props.content, { children }));
     },
     [props.content, props.onEdit],
@@ -26,6 +26,7 @@ export const StructuredContentEditor = (props: StructuredContentEditor) => {
   return (
     <ErrorBoundary>
       <Editor
+        id={props.content.id}
         className="structured-content"
         commandContext={{ projectSlug: props.projectSlug }}
         editMode={props.editMode}

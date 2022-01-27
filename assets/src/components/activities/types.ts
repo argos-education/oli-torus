@@ -1,10 +1,10 @@
-import { ModelElement } from 'data/content/model/elements/types';
+import { ModelElement } from 'data/content/model/nodes/types';
 import { ID, Identifiable } from 'data/content/model/other';
 import { ResourceContext } from 'data/content/resource';
 import { ResourceId } from 'data/types';
 import guid from 'utils/guid';
 import { PathOperation } from 'utils/pathOperations';
-import { Model } from 'data/content/model/elements/factories';
+import { Model } from 'data/content/model/nodes/factories';
 
 export type PostUndoable = (undoable: Undoable) => void;
 

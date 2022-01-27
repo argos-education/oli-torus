@@ -6,7 +6,7 @@ import { PostUndoable, makeUndoable } from 'components/activities/types';
 import { clone } from 'utils/common';
 import { Operations } from 'utils/pathOperations';
 import { toSimpleText } from 'components/editing/utils';
-import { Descendant } from 'slate';
+import { TNode } from '@udecode/plate';
 
 export class ICActions {
   private static getById<T extends Identifiable>(slice: T[], id: string): Maybe<T> {
@@ -74,7 +74,7 @@ export class ICActions {
     };
   }
 
-  static editFeedback(score: number, content: Descendant[]) {
+  static editFeedback(score: number, content: TNode[]) {
     return (draftState: ImageCodingModelSchema, _post: PostUndoable) => {
       draftState.feedback[score].content = content as RichText;
     };

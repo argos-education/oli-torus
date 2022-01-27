@@ -4,16 +4,17 @@ import * as Utils from 'components/editing/utils';
 import React from 'react';
 import '@testing-library/jest-dom';
 import { Editable, Slate, withReact } from 'slate-react';
-import { createEditor, Descendant, Element } from 'slate';
+import { createEditor, Element } from 'slate';
 import { editorFor, markFor } from 'components/editing/editor/modelEditorDispatch';
-import { ModelElement, InputRef, Paragraph } from 'data/content/model/elements/types';
+import { ModelElement, InputRef, Paragraph } from 'data/content/model/nodes/types';
 import { Mark } from 'data/content/model/text';
+import { TNode } from '@udecode/plate';
 
 const exampleContent = require('../writer/example_content.json');
 
 export const testEditor = withReact(createEditor());
 export const TestEditorComponent = () => {
-  const [value, setValue] = React.useState<Descendant[]>(exampleContent.children);
+  const [value, setValue] = React.useState<TNode[]>(exampleContent.children);
   return (
     <Slate editor={testEditor} value={value} onChange={setValue}>
       <Editable

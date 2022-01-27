@@ -3,7 +3,7 @@ import { DropdownInput } from 'components/activities/common/delivery/inputs/Drop
 import { HintsBadge } from 'components/activities/common/delivery/inputs/HintsBadge';
 import { NumericInput } from 'components/activities/common/delivery/inputs/NumericInput';
 import { TextInput } from 'components/activities/common/delivery/inputs/TextInput';
-import { CodeLanguages } from 'components/editing/elements/blockcode/codeLanguages';
+import { CodeLanguages } from 'components/editing/nodes/blockcode/codeLanguages';
 import {
   Audio,
   Blockquote,
@@ -33,7 +33,7 @@ import {
   UnorderedList,
   Webpage,
   YouTube,
-} from 'data/content/model/elements/types';
+} from 'data/content/model/nodes/types';
 import { Mark } from 'data/content/model/text';
 import React from 'react';
 import { OverlayTrigger, Popover } from 'react-bootstrap';

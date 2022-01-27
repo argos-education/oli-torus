@@ -1,5 +1,5 @@
 import { toSimpleText } from 'components/editing/utils';
-import { ModelElement } from 'data/content/model/elements/types';
+import { ModelElement } from 'data/content/model/nodes/types';
 import { ContentItem, ContentTypes, isContentItem } from 'data/content/writers/writer';
 import * as React from 'react';
 import { PopoverState } from 'react-tiny-popover';
