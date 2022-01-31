@@ -1,8 +1,9 @@
-import { createPluginFactory } from '@udecode/plate';
+import { createPluginFactory, getText } from '@udecode/plate';
 import { Model } from 'data/content/model/nodes/factories';
+import { Element } from 'slate';
 
 export const codeblockPlugin = createPluginFactory({
-  key: 'code',
+  key: 'codeblock',
   isElement: true,
   isVoid: true,
   deserializeHtml: {

@@ -48,6 +48,7 @@ config.setModuleUrl(
 // type CodeProps = EditorProps<ContentnodeProps.Code>;
 type CodeProps = any;
 export const CodeEditor = (props: CodeProps) => {
+  console.log('props', props);
   const isSelected = useSelected();
   const [value, setValue] = React.useState(props.element.code);
   const onEdit = onEditModel(props.element);

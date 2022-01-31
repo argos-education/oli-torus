@@ -37,9 +37,12 @@ import {
   createDeserializeHtmlPlugin,
   createMediaEmbedPlugin,
   createHorizontalRulePlugin,
+  createPluginFactory,
+  getText,
 } from '@udecode/plate';
 import { pluginConfig as config } from './pluginConfig';
 import { pluginComponents as components } from './components';
+import { Element } from 'slate';
 
 export const plugins = createPlugins(
   [

@@ -12,5 +12,5 @@ export const pluginComponents = {
       },
     },
   }),
-  code: CodeEditor,
+  codeblock: CodeEditor,
 };

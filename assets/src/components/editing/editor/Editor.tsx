@@ -1,15 +1,43 @@
 import { Model } from 'data/content/model/nodes/factories';
 import React, { useEffect, useMemo } from 'react';
-import { createEditor, Transforms } from 'slate';
+import { createEditor, Element, Transforms } from 'slate';
 import { withHistory } from 'slate-history';
 import { withReact } from 'slate-react';
 import { classNames } from 'utils/classNames';
 import { CommandContext, CommandDesc } from '../nodes/commands/interfaces';
 import { NormalizerContext } from './normalizers/normalizer';
 import { withTables } from './overrides/tables';
-import { Plate, withPlate, TNode, usePlateStore } from '@udecode/plate';
+import {
+  Plate,
+  withPlate,
+  TNode,
+  usePlateStore,
+  usePlateEditorState,
+  getText,
+} from '@udecode/plate';
 import { plugins } from 'components/editing/editor/plugins/plugins';
 import { EditorToolbar } from 'components/editing/toolbar/EditorToolbar';
+import { toSimpleText } from 'components/editing/utils';
+
+const normalized = (values: TNode[]) => {
+  const editor = usePlateEditorState();
+  console.log('values before', values);
+
+  return values.map((node) => {
+    if (!Element.isElement(node)) return node;
+    console.log(node.type);
+    switch (node.type) {
+      case 'code':
+        const text = toSimpleText(node);
+        console.log('text', text);
+        return node;
+
+      // setNodes(editor, {code: getText(editor, lines?.map(line => line[1]))} { at: path})
+      default:
+        return node;
+    }
+  });
+};
 
 export type EditorProps = {
   // Callback when there has been any change to the editor
@@ -63,7 +91,7 @@ export const Editor: React.FC<EditorProps> = React.memo((props: EditorProps) => 
       plugins={plugins}
       normalizeInitialValue
       editor={withPlate(editor, { id: props.id, plugins })}
-      value={props.value.length === 0 ? [Model.p()] : props.value}
+      value={props.value.length === 0 ? [Model.p()] : normalized(props.value)}
       // normalizeInitialValue -> Use this to migrate to newer versions (eg codeblock)
       // Can put overrides as plugins instead of changing editor prop: see https://plate.udecode.io/docs/plugins#with-overrides
       editableProps={{
