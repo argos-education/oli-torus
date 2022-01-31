@@ -72,6 +72,9 @@ export const Model = {
   code: (children = '') =>
     create<Code>({
       type: 'code',
+      // Blockcode puts the children as the code property
+      // This lets the ace editor modify the code and provide
+      // syntax highlighting without slate interfering
       code: children,
       // Auto language
       language: '',

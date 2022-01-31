@@ -1,7 +1,5 @@
 import React from 'react';
 import { onEditModel } from 'components/editing/nodes/utils';
-import * as ContentModel from 'data/content/model/nodes/types';
-import { EditorProps } from 'components/editing/nodes/interfaces';
 import { CaptionEditor } from 'components/editing/nodes/settings/CaptionEditor';
 import { CodeLanguages } from 'components/editing/nodes/blockcode/codeLanguages';
 import { DropdownButton } from 'components/editing/toolbar/buttons/DropdownButton';
@@ -34,9 +32,11 @@ import 'ace-builds/src-noconflict/mode-text';
 import 'ace-builds/src-noconflict/mode-typescript';
 import 'ace-builds/src-noconflict/mode-xml';
 import { classNames } from 'utils/classNames';
-import { ReactEditor, useSelected, useSlate } from 'slate-react';
+import { ReactEditor, useSelected } from 'slate-react';
 import { Transforms } from 'slate';
+import { findNodePath, getRootProps } from '@udecode/plate';
 
+// Set up editor features (e.g. syntax highlighter) to use background threads
 config.set('basePath', 'https://cdn.jsdelivr.net/npm/ace-builds@1.4.13/src-noconflict/');
 config.setModuleUrl(
   'ace/mode/javascript_worker',
@@ -45,20 +45,33 @@ config.setModuleUrl(
 
 // TODO: write version migrator
 
-type CodeProps = EditorProps<ContentModel.Code>;
+// type CodeProps = EditorProps<ContentnodeProps.Code>;
+type CodeProps = any;
 export const CodeEditor = (props: CodeProps) => {
   const isSelected = useSelected();
-  // console.log('is selected', isSelected);
-  // const [selected, setSelected] = React.useState(false);
-  const [value, setValue] = React.useState(props.model.code);
-  const onEdit = onEditModel(props.model);
+  const [value, setValue] = React.useState(props.element.code);
+  const onEdit = onEditModel(props.element);
   const reactAce = React.useRef<AceEditor | null>(null);
   const aceEditor = reactAce.current?.editor;
-  const editor = useSlate();
-  // aceEditor?.on('blur', () => console.log('blurring event'));
+  const rootProps = getRootProps(props);
+
+  React.useEffect(() => {
+    if (!aceEditor) return;
+    aceEditor.commands.addCommand({
+      name: 'escape',
+      exec: () => {
+        ReactEditor.focus(props.editor);
+        Transforms.select(
+          props.editor,
+          findNodePath(props.editor, props.element) || props.editor.selection,
+        );
+      },
+      bindKey: 'Esc',
+    });
+  }, [aceEditor]);
 
   return (
-    <div {...props.attributes} contentEditable={false}>
+    <div {...props.attributes} {...rootProps} contentEditable={false}>
       <HoverContainer
         isOpen={isSelected}
         align="start"
@@ -69,7 +82,7 @@ export const CodeEditor = (props: CodeProps) => {
               <DropdownButton
                 description={createButtonCommandDesc({
                   icon: '',
-                  description: props.model.language,
+                  description: props.element.language,
                   active: (_editor) => false,
                   execute: (_ctx, _editor) => {},
                 })}
@@ -80,7 +93,7 @@ export const CodeEditor = (props: CodeProps) => {
                     description={createButtonCommandDesc({
                       icon: '',
                       description: prettyName,
-                      active: () => prettyName === props.model.language,
+                      active: () => prettyName === props.element.language,
                       execute: () => {
                         aceEditor?.session.setMode(aceMode);
                         onEdit({ language: prettyName });
@@ -96,7 +109,7 @@ export const CodeEditor = (props: CodeProps) => {
         <AceEditor
           className={classNames(['code-editor', isSelected && 'active'])}
           ref={reactAce}
-          mode={CodeLanguages.byPrettyName(props.model.language).aceMode}
+          mode={CodeLanguages.byPrettyName(props.element.language).aceMode}
           theme="github"
           onChange={(code) => {
             onEdit({ code });
@@ -115,7 +128,7 @@ export const CodeEditor = (props: CodeProps) => {
           placeholder={'fibs = 0 : 1 : zipWith (+) fibs (tail fibs)'}
         />
         {...props.children}
-        <CaptionEditor onEdit={(caption) => onEdit({ caption })} model={props.model} />
+        <CaptionEditor onEdit={(caption) => onEdit({ caption })} model={props.element} />
       </HoverContainer>
     </div>
   );

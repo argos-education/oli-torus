@@ -11,6 +11,7 @@
   background: white;
 
   &__group {
+    display: inline-flex;
     background: white;
     border-left: 1px solid black;
 
@@ -39,7 +40,7 @@
     border: 0;
     background: white;
     flex-basis: 36px;
-    height: 42px;
+    // height: 42px;
     padding: 12px 6px;
     display: inline-flex;
     align-items: center;
@@ -63,8 +64,8 @@
     }
 
     &Indicator {
-      flex-basis: 32px;
-      height: 32px;
+      // flex-basis: 32px;
+      // height: 32px;
       border: 2px solid transparent;
       border-radius: 4px;
       display: flex;

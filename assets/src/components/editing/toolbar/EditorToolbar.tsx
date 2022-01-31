@@ -24,6 +24,7 @@ import { ResourceContent } from 'data/content/resource';
 import React from 'react';
 import { Editor, Element, Transforms } from 'slate';
 import { ReactEditor, useSlate } from 'slate-react';
+import { NewEditorToolbar } from 'components/editing/toolbar/NewEditorToolbar';
 
 interface Props {
   context: CommandContext;
@@ -45,14 +46,6 @@ export const EditorToolbar = (props: Props) => {
       </DropdownButton>
     </Toolbar.Group>
   );
-
-  // ['paragraph', 'heading', 'list', 'quote', 'code'];
-
-  // paragraph: none
-  // heading: heading level
-  // list: list types (with active icon), outdent, indent
-  // quote: none
-  // code: language
 
   const blockSettings = {
     Heading: () => (
@@ -95,7 +88,6 @@ export const EditorToolbar = (props: Props) => {
                     { language: prettyName },
                     { at, match: (e) => Element.isElement(e) && e.type === 'code' },
                   );
-                  // (window as any)?.hljs.highlightAll();
                 },
               })}
             />
@@ -151,11 +143,14 @@ export const EditorToolbar = (props: Props) => {
       }
       content={
         <Toolbar context={props.context}>
-          {blockToggling}
-          {blockSettings?.()}
-          {formatting}
-          {insertMenu}
+          <NewEditorToolbar />
         </Toolbar>
+        // <Toolbar context={props.context}>
+        //   {blockToggling}
+        //   {blockSettings?.()}
+        //   {formatting}
+        //   {insertMenu}
+        // </Toolbar>
       }
     />
   );
