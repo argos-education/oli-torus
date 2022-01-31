@@ -14,6 +14,7 @@ import {
   usePlateStore,
   usePlateEditorState,
   getText,
+  ELEMENT_IMAGE,
 } from '@udecode/plate';
 import { plugins } from 'components/editing/editor/plugins/plugins';
 import { EditorToolbar } from 'components/editing/toolbar/EditorToolbar';
@@ -31,8 +32,30 @@ const normalized = (values: TNode[]) => {
         const text = toSimpleText(node);
         console.log('text', text);
         return node;
+      case 'img':
+        console.log('img, normalizing', node);
+        console.log('to return', {
+          ...node,
+          url: node.src || node.url,
+          children: [{ text: '' }],
+          caption:
+            typeof node.caption === 'string'
+              ? [{ children: [{ text: node.caption ?? '' }] }]
+              : node.caption,
+        });
+        // if (node.url) return node;
+        return {
+          type: 'img',
+          children: node.children,
+          element: {
+            url: node.src || node.url,
+            caption:
+              typeof node.caption === 'string'
+                ? [{ children: [{ text: node.caption ?? '' }] }]
+                : node.caption,
+          },
+        };
 
-      // setNodes(editor, {code: getText(editor, lines?.map(line => line[1]))} { at: path})
       default:
         return node;
     }
@@ -73,7 +96,7 @@ function areEqual(prevProps: EditorProps, nextProps: EditorProps) {
   );
 }
 
-export const Editor: React.FC<EditorProps> = React.memo((props: EditorProps) => {
+export const Editor: React.FC<EditorProps> = (props: EditorProps) => {
   const editor = useMemo(
     () => withReact(withHistory(withTables(createEditor()))),
     [props.commandContext],
@@ -119,7 +142,7 @@ export const Editor: React.FC<EditorProps> = React.memo((props: EditorProps) => 
       <EditorToolbar context={props.commandContext} toolbarInsertDescs={props.toolbarInsertDescs} />
     </Plate>
   );
-}, areEqual);
+};
 Editor.displayName = 'Editor';
 
 // const onKeyDown = useCallback((e: React.KeyboardEvent) => {

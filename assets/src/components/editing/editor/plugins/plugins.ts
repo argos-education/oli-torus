@@ -39,10 +39,12 @@ import {
   createHorizontalRulePlugin,
   createPluginFactory,
   getText,
+  ELEMENT_IMAGE,
+  setNodes,
 } from '@udecode/plate';
 import { pluginConfig as config } from './pluginConfig';
 import { pluginComponents as components } from './components';
-import { Element } from 'slate';
+import { Editor, Element } from 'slate';
 
 export const plugins = createPlugins(
   [
@@ -51,7 +53,32 @@ export const plugins = createPlugins(
     createParagraphPlugin(),
     createBlockquotePlugin(),
     createTablePlugin(),
-    createImagePlugin(),
+    createImagePlugin({
+      //       withOverrides: (editor, _plugin) => {
+      // //         const normalizeNode = editor.normalizeNode;
+      // //         console.log('normalizing');
+      // //         editor.normalizeNode = (entry) => {
+      // //           const [node, path] = entry;
+      // //           /*
+      // // export interface Image extends SlateElement<VoidChildren> {
+      // //   type: 'img';
+      // //   src?: string;
+      // //   height?: number;
+      // //   width?: number;
+      // //   alt?: string;
+      // //   caption?: string;
+      // //   // Legacy, unused;
+      // //   display?: string;
+      // // }
+      // //           */
+      // //           if (Element.isElement(node) && node.type === 'img') {
+      // //             console.log('image', node);
+      // //           }
+      // //           return normalizeNode(entry);
+      // //         };
+      // //         return editor;
+      //       },
+    }),
     createSelectOnBackspacePlugin(config.selectOnBackspace),
     createLineHeightPlugin(config.lineHeight),
     codeblockPlugin(),
