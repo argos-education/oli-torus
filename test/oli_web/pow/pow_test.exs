@@ -42,7 +42,7 @@ defmodule OliWeb.Common.PowTest do
         conn
         |> get(Routes.pow_session_path(conn, :new))
 
-      assert html_response(conn, 200) =~ "Learner Sign In"
+      assert html_response(conn, 200) =~ "Sign In"
 
       # sign user in
       conn =

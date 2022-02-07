@@ -1,15 +1,24 @@
-
 <%= if Keyword.has_key?(@changeset.errors,:password_confirmation) do %>
   <div class="container">
     <div class="row">
-      <div class="col-sm-12 col-md-10 col-lg-8 col-xl-6 mx-auto">
+      <div class="col-sm-12 col-md-10 col-lg-8 col-xl-8 mx-auto">
         <div class="callout callout-primary">
-          <h4><i class="las la-info-circle mr-2"></i>Looking for Authoring Sign In?</h4>
+          <h4><i class="las la-info-circle mr-2"></i>Looking for Authoring or your LMS?</h4>
           <p>
-            It looks like your credentials failed but you might be in the wrong location. This page is for <b>Learner</b> accounts.
-            If you are trying to sign into an <b>Author</b> account, please use the Authoring Sign In page.</p>
+            This sign in page is for <b>Independent Learner and Educator</b> accounts. Your credentials may have failed because you are using the wrong sign in page.
+          </p>
           <p>
-            <%= link to: Routes.authoring_pow_session_path(@conn, :new), class: "btn btn-sm btn-outline-primary my-2 my-sm-0" do %>
+            If your institution uses an LMS such as Canvas or Blackboard to access your course, please sign in through your LMS.
+          </p>
+          <p>
+            If you are trying to sign in as an author, please use the Authoring Sign In page.
+          </p>
+          <p class="d-flex">
+            <span class="flex-grow-1"></span>
+            <%= link to: Routes.live_path(@conn, OliWeb.Delivery.FindMyInstitution), class: "btn btn-sm btn-outline-primary my-2 my-sm-0" do %>
+              Find my LMS
+            <% end %>
+            <%= link to: Routes.authoring_pow_session_path(@conn, :new), class: "btn btn-sm btn-outline-primary my-2 my-sm-0 ml-2" do %>
               Go to Authoring Sign In <i class="fa fa-arrow-right"></i>
             <% end %>
           </p>
@@ -19,7 +28,7 @@
   </div>
 <% end %>
 
-<%= render OliWeb.SharedView, "_box_form_container.html", Map.merge(assigns, %{title: value_or(assigns[:title], "Learner Sign In"), bs_col_class: "col-sm-10 col-md-8 col-lg-6 col-xl-5 mx-auto"}) do %>
+<%= render OliWeb.SharedView, "_box_form_container.html", Map.merge(assigns, %{title: value_or(assigns[:title], "Sign In"), bs_col_class: "col-sm-10 col-md-8 col-lg-6 col-xl-5 mx-auto"}) do %>
   <%# social media sign in links %>
   <%= for link <- OliWeb.Pow.PowHelpers.provider_links(@conn), do: raw link %>
     <hr class="my-4">
