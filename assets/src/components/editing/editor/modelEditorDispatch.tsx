@@ -1,6 +1,8 @@
 import { AudioEditor } from 'components/editing/nodes/audio/Editor';
 import { CodeEditor } from 'components/editing/nodes/blockcode/Editor';
-import { BlockQuoteEditor } from 'components/editing/nodes/blockquote/Editor';
+import { BlockQuoteEditor } from 'components/editing/nodes/blockquote/BlockquoteElement';
+import { CommandContext } from 'components/editing/nodes/commands/interfaces';
+import { ImageEditor } from 'components/editing/nodes/image/Editor';
 import { InputRefEditor } from 'components/editing/nodes/inputref/Editor';
 import { LinkEditor } from 'components/editing/nodes/link/Editor';
 import { PopupEditor } from 'components/editing/nodes/popup/Editor';
@@ -10,13 +12,11 @@ import { ThEditor } from 'components/editing/nodes/table/ThEditor';
 import { TrEditor } from 'components/editing/nodes/table/TrEditor';
 import { WebpageEditor } from 'components/editing/nodes/webpage/Editor';
 import { YouTubeEditor } from 'components/editing/nodes/youtube/Editor';
-import * as ContentModel from 'data/content/model/nodes/types';
 import { Mark } from 'data/content/model/text';
 import * as React from 'react';
 import { RenderElementProps } from 'slate-react';
-import { CommandContext } from '../nodes/commands/interfaces';
-import { ImageEditor } from '../nodes/image/Editor';
-import { EditorProps } from '../nodes/interfaces';
+import * as ContentModel from 'data/content/model/nodes/types';
+import { EditorProps } from 'components/editing/nodes/interfaces';
 
 export function editorFor(
   model: ContentModel.ModelElement,

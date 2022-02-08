@@ -3,12 +3,15 @@ import { ErrorBoundary } from 'components/common/ErrorBoundary';
 import { CommandContext } from 'components/editing/nodes/commands/interfaces';
 import { Editor } from 'components/editing/editor/Editor';
 import { NormalizerContext } from 'components/editing/editor/normalizers/normalizer';
-import { getToolbarForContentType } from 'components/editing/toolbar/utils';
 import { ProjectSlug } from 'data/types';
 import React from 'react';
 import { Editor as SlateEditor, Operation } from 'slate';
 import { classNames } from 'utils/classNames';
+<<<<<<< HEAD
 import { TNode } from '@udecode/plate';
+=======
+import { getToolbarForContentType } from 'components/editing/toolbar/utils';
+>>>>>>> fix-toolbar
 
 type Props = {
   id: string;
@@ -37,8 +40,8 @@ export const RichTextEditor: React.FC<Props> = (props) => {
           commandContext={props.commandContext || { projectSlug: props.projectSlug }}
           editMode={props.editMode}
           value={value}
-          onEdit={props.onEdit}
-          toolbarInsertDescs={[]}
+          onEdit={(value, editor, operations) => props.onEdit(value, editor, operations)}
+          toolbarInsertDescs={getToolbarForContentType('small')}
           placeholder={props.placeholder}
           style={props.style}
         >

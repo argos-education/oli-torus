@@ -1,9 +1,17 @@
+<<<<<<< HEAD:assets/src/components/editing/nodes/link/EditLink.tsx
 import { onEnterApply } from 'components/editing/nodes/settings/Settings';
 import * as Persistence from 'data/persistence/resource';
 import React, { useState } from 'react';
 import { isInternalLink, normalizeHref, toInternalLink } from './utils';
 import * as Settings from 'components/editing/nodes/settings/Settings';
 import { Hyperlink } from 'data/content/model/nodes/types';
+=======
+import { onEnterApply } from 'components/editing/elements/common/settings/Settings';
+import * as Persistence from 'data/persistence/resource';
+import React, { useState } from 'react';
+import { isInternalLink, normalizeHref, toInternalLink } from './utils';
+import { Hyperlink } from 'data/content/model/elements/types';
+>>>>>>> fix-toolbar:assets/src/components/editing/elements/link/EditLink.tsx
 
 type ExistingLinkEditorProps = {
   href: string;
@@ -19,6 +27,10 @@ export const EditLink = (props: ExistingLinkEditorProps) => {
 
   const [href, setHref] = useState(props.href);
   const [source, setSource] = useState<'page' | 'url'>(isInternalLink(props.href) ? 'page' : 'url');
+
+  React.useEffect(() => {
+    if (href !== props.model.href) props.onEdit(href);
+  }, [href]);
 
   const onChangeSource = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
@@ -84,7 +96,7 @@ export const EditLink = (props: ExistingLinkEditorProps) => {
 
   const hrefInput = (
     <input
-      onMouseDown={(e) => (e.currentTarget.focus(), console.log(e, 'mouse down'))}
+      onMouseDown={(e) => e.currentTarget.focus()}
       type="text"
       defaultValue={href}
       placeholder="www.google.com"
@@ -93,28 +105,12 @@ export const EditLink = (props: ExistingLinkEditorProps) => {
       className={'form-control mr-sm-2'}
       style={{ display: 'inline ', width: '300px' }}
     />
-    // <Settings.Input
-    //   value={props.href}
-    //   onChange={(href) => props.onEdit(normalizeHref(href))}
-    //   model={props.model}
-    //   placeholder="URL"
-    // />
   );
 
   const changeHref = (
     <form className="form-inline">
       <label className="sr-only">Link</label>
       {source === 'page' ? pageSelect : hrefInput}
-      <button
-        onClick={(e) => {
-          e.preventDefault();
-          e.stopPropagation();
-          props.onEdit(source === 'page' ? href : normalizeHref(href));
-        }}
-        className="btn btn-primary ml-1"
-      >
-        Apply
-      </button>
     </form>
   );
 
@@ -126,7 +122,6 @@ export const EditLink = (props: ExistingLinkEditorProps) => {
         e.stopPropagation();
       }}
     >
-      <input type="text" />
       <div className="settings-editor">
         <div className="mb-2 d-flex justify-content-between">{linkOptions}</div>
         {changeHref}

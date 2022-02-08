@@ -76,8 +76,7 @@ export const Model = {
       // This lets the ace editor modify the code and provide
       // syntax highlighting without slate interfering
       code: children,
-      // Auto language
-      language: '',
+      language: 'Text',
     }),
 
   inputRef: () => create<InputRef>({ type: 'input_ref' }),

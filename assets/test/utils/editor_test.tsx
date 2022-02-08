@@ -14,7 +14,19 @@ const exampleContent = require('../writer/example_content.json');
 
 export const testEditor = withReact(createEditor());
 export const TestEditorComponent = () => {
+<<<<<<< HEAD
   const [value, setValue] = React.useState<TNode[]>(exampleContent.children);
+=======
+  const [value, setValue] = React.useState<Descendant[]>(exampleContent.children);
+
+  // Mock for image element
+  (window as any).ResizeObserver = class ResizeObserver {
+    observe() {}
+    unobserve() {}
+    disconnect() {}
+  };
+
+>>>>>>> fix-toolbar
   return (
     <Slate editor={testEditor} value={value} onChange={setValue}>
       <Editable

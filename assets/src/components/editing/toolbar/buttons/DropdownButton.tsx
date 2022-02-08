@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 import { CommandDesc } from 'components/editing/nodes/commands/interfaces';
+=======
+import { CommandDescription } from 'components/editing/elements/commands/interfaces';
+>>>>>>> fix-toolbar
 import { ButtonContent } from 'components/editing/toolbar/buttons/shared';
 import { useToolbar } from 'components/editing/toolbar/useToolbar';
 import React, { PropsWithChildren } from 'react';
@@ -7,7 +11,7 @@ import { useSlate } from 'slate-react';
 import { classNames } from 'utils/classNames';
 
 interface Props {
-  description: CommandDesc;
+  description: CommandDescription;
 }
 export const DropdownButton = (props: PropsWithChildren<Props>) => {
   const thisDropdown = React.useRef<HTMLButtonElement | null>(null);

@@ -1,9 +1,13 @@
+<<<<<<< HEAD
 import { CommandDesc } from 'components/editing/nodes/commands/interfaces';
+=======
+import { CommandDescription } from 'components/editing/elements/commands/interfaces';
+>>>>>>> fix-toolbar
 import React from 'react';
 import { useSlate } from 'slate-react';
 
 interface Props {
-  description: CommandDesc;
+  description: CommandDescription;
 }
 export const ButtonContent = (props: Props) => {
   const editor = useSlate();

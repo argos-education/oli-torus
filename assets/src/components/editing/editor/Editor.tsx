@@ -1,11 +1,21 @@
-import { Model } from 'data/content/model/nodes/factories';
-import React, { useEffect, useMemo } from 'react';
-import { createEditor, Element, Transforms } from 'slate';
+import { withHtml } from 'components/editing/editor/overrides/html';
+import { Model } from 'data/content/model/elements/factories';
+import { Mark, Marks } from 'data/content/model/text';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { createEditor, Descendant, Editor as SlateEditor, Operation, Transforms } from 'slate';
 import { withHistory } from 'slate-history';
 import { withReact } from 'slate-react';
 import { classNames } from 'utils/classNames';
-import { CommandContext, CommandDesc } from '../nodes/commands/interfaces';
-import { NormalizerContext } from './normalizers/normalizer';
+import { CommandContext, CommandDescription } from '../elements/commands/interfaces';
+import { hotkeyHandler } from './handlers/hotkey';
+import { onKeyDown as listOnKeyDown } from './handlers/lists';
+import { onKeyDown as quoteOnKeyDown } from './handlers/quote';
+import { onKeyDown as titleOnKeyDown } from './handlers/title';
+import { onKeyDown as voidOnKeyDown } from './handlers/void';
+import { editorFor, markFor } from './modelEditorDispatch';
+import { installNormalizer, NormalizerContext } from './normalizers/normalizer';
+import { withInlines } from './overrides/inlines';
+import { withMarkdown } from './overrides/markdown';
 import { withTables } from './overrides/tables';
 import {
   Plate,
@@ -68,7 +78,7 @@ export type EditorProps = {
   // The content to display
   value: TNode[];
   // The insertion toolbar configuration
-  toolbarInsertDescs: CommandDesc[];
+  toolbarInsertDescs: CommandDescription[];
   // Whether or not editing is allowed
   editMode: boolean;
   commandContext: CommandContext;

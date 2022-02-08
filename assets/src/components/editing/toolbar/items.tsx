@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import { commandDesc as quoteCmd } from 'components/editing/nodes/commands/BlockquoteCmd';
 import {
   createButtonCommandDesc,
@@ -120,24 +121,40 @@ export const formattingDropdownDesc: CommandDesc = {
     execute: (_context, _editor, _action) => {},
     precondition: (_editor) => true,
   },
+=======
+import { createButtonCommandDesc } from 'components/editing/elements/commands/commandFactories';
+import { CommandDescription } from 'components/editing/elements/commands/interfaces';
+import { commandDesc as linkCmd } from 'components/editing/elements/link/LinkCmd';
+import { insertCodeblock } from 'components/editing/elements/blockcode/codeblockActions';
+import { insertYoutube } from 'components/editing/elements/youtube/youtubeActions';
+import { toggleBlockquote } from 'components/editing/elements/blockquote/blockquoteActions';
+import { toggleList } from 'components/editing/elements/list/listActions';
+import { Editor } from 'slate';
+import {
+  additionalFormattingOptions,
+  toggleFormat,
+} from 'components/editing/elements/marks/toggleMarkActions';
+import { insertWebpage } from 'components/editing/elements/webpage/webpageActions';
+import { insertTable } from 'components/editing/elements/table/commands/insertTable';
+import { insertImage } from 'components/editing/elements/image/imageActions';
+import { insertAudio } from 'components/editing/elements/audio/audioActions';
+import { toggleHeading } from 'components/editing/elements/heading/headingActions';
+import { toggleParagraph } from 'components/editing/elements/paragraph/paragraphActions';
+
+export const formattingDropdownAction = createButtonCommandDesc({
+  icon: 'expand_more',
+  description: 'More',
+  execute: (_context, _editor, _action) => {},
+>>>>>>> fix-toolbar
   active: (e) => additionalFormattingOptions.some((opt) => opt.active?.(e)),
-};
+});
 
-export const activeBlockType = (editor: SlateEditor) =>
-  textTypeDescs.find((type) => type.active?.(editor)) || textTypeDescs[0];
+export const toggleTextTypes = [toggleParagraph, toggleHeading, toggleList, toggleBlockquote];
 
-export const textTypeDropdownDesc = (editor: SlateEditor): CommandDesc => {
-  const type = activeBlockType(editor);
-  return {
-    type: 'CommandDesc',
-    icon: type.icon,
-    description: () => 'Change block from ' + type.description(editor),
-    command: {} as any,
-    active: (_e) => false,
-  };
-};
+export const activeBlockType = (editor: Editor) =>
+  toggleTextTypes.find((type) => type?.active?.(editor)) || toggleTextTypes[0];
 
-export const addDesc: CommandDesc = {
+export const addItemDropdown: CommandDescription = {
   type: 'CommandDesc',
   icon: () => 'add',
   description: () => 'Add item',
@@ -145,17 +162,17 @@ export const addDesc: CommandDesc = {
   active: (_e) => false,
 };
 
-export const addDescs = (onRequestMedia: any) => [
-  tableCommandDesc,
-  codeBlockInsertDesc,
-  imgCmdDescBuilder(onRequestMedia),
-  ytCmdDesc,
-  audioCmdDescBuilder(onRequestMedia),
-  webpageCmdDesc,
+export const addItemActions = (onRequestMedia: any) => [
+  insertTable,
+  insertCodeblock,
+  insertImage(onRequestMedia),
+  insertYoutube,
+  insertAudio(onRequestMedia),
+  insertWebpage,
 ];
 
 export const formatMenuCommands = [
-  format({ icon: 'format_bold', mark: 'strong', description: 'Bold' }),
-  format({ icon: 'format_italic', mark: 'em', description: 'Italic' }),
+  toggleFormat({ icon: 'format_bold', mark: 'strong', description: 'Bold' }),
+  toggleFormat({ icon: 'format_italic', mark: 'em', description: 'Italic' }),
   linkCmd,
 ];

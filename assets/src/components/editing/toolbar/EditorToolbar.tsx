@@ -1,34 +1,49 @@
+<<<<<<< HEAD
 import { CodeLanguages } from 'components/editing/nodes/blockcode/codeLanguages';
 import { codeLanguageDesc } from 'components/editing/nodes/commands/BlockcodeCmd';
 import { createButtonCommandDesc } from 'components/editing/nodes/commands/commands';
 import { CommandContext, CommandDesc } from 'components/editing/nodes/commands/interfaces';
 import { listSettings } from 'data/content/model/nodes/list/ListsCmd';
 import { headingLevelDesc, headingTypeDescs } from 'components/editing/nodes/commands/TitleCmd';
+=======
+import { CodeLanguages } from 'components/editing/elements/blockcode/codeLanguages';
+import { codeLanguageDesc } from 'components/editing/elements/blockcode/codeblockActions';
+import { createButtonCommandDesc } from 'components/editing/elements/commands/commandFactories';
+import {
+  CommandContext,
+  CommandDescription,
+} from 'components/editing/elements/commands/interfaces';
+>>>>>>> fix-toolbar
 import { CommandButton } from 'components/editing/toolbar/buttons/CommandButton';
 import { DescriptiveButton } from 'components/editing/toolbar/buttons/DescriptiveButton';
 import { DropdownButton } from 'components/editing/toolbar/buttons/DropdownButton';
 import { HoverContainer } from 'components/editing/toolbar/HoverContainer';
 import {
   activeBlockType,
-  textTypeDescs,
   formatMenuCommands,
-  formattingDropdownDesc,
-  additionalFormattingOptions,
-  addDesc,
-  addDescs,
+  addItemDropdown,
+  toggleTextTypes,
+  formattingDropdownAction,
 } from 'components/editing/toolbar/items';
 import { Toolbar } from 'components/editing/toolbar/Toolbar';
 import { getHighestTopLevel, safeToDOMNode } from 'components/editing/utils';
-import { ActivityEditContext } from 'data/content/activity';
-import { ResourceContent } from 'data/content/resource';
 import React from 'react';
 import { Editor, Element, Transforms } from 'slate';
 import { ReactEditor, useSlate } from 'slate-react';
+<<<<<<< HEAD
 import { NewEditorToolbar } from 'components/editing/toolbar/NewEditorToolbar';
+=======
+import { additionalFormattingOptions } from 'components/editing/elements/marks/toggleMarkActions';
+import { listSettings } from 'components/editing/elements/list/listActions';
+import {
+  headingLevelDesc,
+  headingTypeDescs,
+} from 'components/editing/elements/heading/headingActions';
+>>>>>>> fix-toolbar
 
 interface Props {
   context: CommandContext;
-  toolbarInsertDescs: CommandDesc[];
+  toolbarInsertDescs: CommandDescription[];
 }
 export const EditorToolbar = (props: Props) => {
   const editor = useSlate();
@@ -38,7 +53,7 @@ export const EditorToolbar = (props: Props) => {
   const blockToggling = (
     <Toolbar.Group>
       <DropdownButton description={activeBlockDesc}>
-        {textTypeDescs
+        {toggleTextTypes
           .filter((type) => !type.active?.(editor))
           .map((desc, i) => (
             <DescriptiveButton key={i} description={desc} />
@@ -102,7 +117,7 @@ export const EditorToolbar = (props: Props) => {
   ));
 
   const advancedFormatting = (
-    <DropdownButton description={formattingDropdownDesc}>
+    <DropdownButton description={formattingDropdownAction}>
       {additionalFormattingOptions.map((desc, i) => (
         <DescriptiveButton key={i} description={desc} />
       ))}
@@ -118,9 +133,8 @@ export const EditorToolbar = (props: Props) => {
 
   const insertMenu = (
     <Toolbar.Group>
-      <DropdownButton description={addDesc}>
-        {addDescs(null)
-          .concat(props.toolbarInsertDescs)
+      <DropdownButton description={addItemDropdown}>
+        {props.toolbarInsertDescs
           .filter((desc) => desc.command.precondition(editor))
           .map((desc, i) => (
             <DescriptiveButton key={i} description={desc} />
@@ -129,7 +143,6 @@ export const EditorToolbar = (props: Props) => {
     </Toolbar.Group>
   );
 
-  /* {Filter for precondition} */
   return (
     <HoverContainer
       isOpen={isOpen}

@@ -1,0 +1,13 @@
+@use 'delivery/variables' as delivery;
+
+.settings-editor-wrapper {
+  padding: 5px;
+
+  .settings-editor {
+    width: 400px;
+    padding: 10px;
+    border-radius: 4px;
+    background-color: transparentize($color: $gray-200, $amount: 0.1);
+    backdrop-filter: blur(16px);
+  }
+}

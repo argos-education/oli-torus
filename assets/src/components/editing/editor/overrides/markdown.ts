@@ -1,13 +1,9 @@
 import { Range, Editor, Transforms } from 'slate';
-import {
-  olCommandDesc as olCmd,
-  ulCommandDesc as ulCmd,
-} from 'data/content/model/nodes/list/ListsCmd';
-import { commandDesc as quoteCmd } from 'components/editing/nodes/commands/BlockquoteCmd';
-import { ReactEditor } from 'slate-react';
 import { isTopLevel } from 'components/editing/utils';
+import { toggleBlockquote } from 'components/editing/nodes/blockquote/blockquoteActions';
+import { insertCodeblock } from 'components/editing/nodes/commands/BlockcodeCmd';
 import { CommandContext } from 'components/editing/nodes/commands/interfaces';
-import { codeBlockInsertDesc } from 'components/editing/nodes/commands/BlockcodeCmd';
+import { toggleUnorderedList, toggleOrderedList } from 'components/editing/nodes/list/listActions';
 
 const SHORTCUTS = {
   '#': 'h1',
@@ -21,7 +17,7 @@ const SHORTCUTS = {
   '``': 'code',
 };
 
-export const withMarkdown = (context: CommandContext) => (editor: Editor & ReactEditor) => {
+export const withMarkdown = (context: CommandContext) => (editor: Editor) => {
   const { insertText } = editor;
   const blockTrigger = ' ';
   const codeTrigger = '`';
@@ -60,13 +56,13 @@ export const withMarkdown = (context: CommandContext) => (editor: Editor & React
           case 'h2':
             return setNodes('h2');
           case 'ul':
-            return ulCmd.command.execute(context, editor);
+            return toggleUnorderedList.command.execute(context, editor);
           case 'ol':
-            return olCmd.command.execute(context, editor);
+            return toggleOrderedList.command.execute(context, editor);
           case 'blockquote':
-            return quoteCmd.command.execute(context, editor);
+            return toggleBlockquote.command.execute(context, editor);
           case 'code':
-            return codeBlockInsertDesc.command.execute(context, editor);
+            return insertCodeblock.command.execute(context, editor);
         }
       }
     }
