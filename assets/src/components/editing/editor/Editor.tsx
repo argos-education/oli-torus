@@ -19,6 +19,8 @@ import { withMarkdown } from './overrides/markdown';
 import { withTables } from './overrides/tables';
 import { withVoids } from './overrides/voids';
 import { EditorToolbar } from 'components/editing/toolbar/EditorToolbar';
+import { Plate, withPlate } from '@udecode/plate';
+import { plugins } from 'components/editing/editor/plugins/plugins';
 
 export type EditorProps = {
   // Callback when there has been any change to the editor
@@ -56,93 +58,119 @@ function areEqual(prevProps: EditorProps, nextProps: EditorProps) {
 export const Editor: React.FC<EditorProps> = React.memo((props: EditorProps) => {
   const [installed, setInstalled] = useState(false);
 
-  const editor = useMemo(
-    () =>
-      withMarkdown(props.commandContext)(
-        withHtml(withReact(withHistory(withTables(withInlines(withVoids(createEditor())))))),
-      ),
-    [],
-  );
-
-  // Install the custom normalizer, only once
-  useEffect(() => {
-    if (!installed) {
-      installNormalizer(editor, props.normalizerContext);
-      setInstalled(true);
-    }
-  }, [installed]);
-
-  const renderElement = useCallback(
-    (renderProps: RenderElementProps) =>
-      editorFor(renderProps.element, renderProps, props.commandContext),
-    [props.commandContext, editor],
-  );
-
-  const onKeyDown = useCallback((e: React.KeyboardEvent) => {
-    voidOnKeyDown(editor, e);
-    listOnKeyDown(editor, e);
-    quoteOnKeyDown(editor, e);
-    titleOnKeyDown(editor, e);
-    hotkeyHandler(editor, e.nativeEvent, props.commandContext);
-  }, []);
-
-  const renderLeaf = useCallback(({ attributes, children, leaf }: RenderLeafProps) => {
-    const markup = Object.keys(leaf).reduce(
-      (m, k) => (k in Marks ? markFor(k as Mark, m) : m),
-      children,
-    );
-    return <span {...attributes}>{markup}</span>;
-  }, []);
-
-  const onChange = (value: Descendant[]) => {
-    const { operations } = editor;
-
-    // Determine if this onChange was due to an actual content change.
-    // Otherwise, undo/redo will save pure selection changes.
-    if (operations.filter(({ type }) => type !== 'set_selection').length) {
-      props.onEdit(value, editor, operations);
-    }
-  };
+  // const editor = useMemo(
+  //   () =>
+  //     withMarkdown(props.commandContext)(
+  //       withHtml(withReact(withHistory(withTables(withInlines(withVoids(createEditor())))))),
+  //     ),
+  //   [],
+  // );
+  const editor = useMemo(() => withPlate(withHtml(withReact(withHistory(createEditor())))), []);
 
   return (
-    <React.Fragment>
-      <Slate
+    <>
+      <Plate
+        id={'1'}
         editor={editor}
-        value={props.value.length === 0 ? [Model.p()] : props.value}
-        onChange={onChange}
+        // editableProps={CONFIG.editableProps}
+        // initialValue={VALUES.basicNodes}
+        onChange={(value) => {
+          // TODO: Verify this works
+          // TODO: Change editor to plate hook
+          props.onEdit(value as Descendant[], editor, editor.operations);
+        }}
+        // TODO: Change to p() if empty
+        // TODO: Normalize initial entry
+        value={props.value}
+        plugins={plugins}
       >
-        {props.children}
-
         <EditorToolbar
           context={props.commandContext}
           toolbarInsertDescs={props.toolbarInsertDescs}
         />
-
-        <Editable
-          style={props.style}
-          className={classNames(['slate-editor', 'overflow-auto', props.className])}
-          readOnly={!props.editMode}
-          renderElement={renderElement}
-          renderLeaf={renderLeaf}
-          placeholder={props.placeholder ?? 'Enter some content here...'}
-          onKeyDown={onKeyDown}
-          onFocus={emptyOnFocus}
-          onPaste={(e) => {
-            const pastedText = e.clipboardData?.getData('text')?.trim();
-            const youtubeRegex =
-              /^(?:(?:https?:)?\/\/)?(?:(?:www|m)\.)?(?:(?:youtube\.com|youtu.be))(?:\/(?:[\w-]+\?v=|embed\/|v\/)?)([\w-]+)(?:\S+)?$/;
-            const matches = pastedText.match(youtubeRegex);
-            if (matches != null) {
-              // matches[0] === the entire url
-              // matches[1] === video id
-              const [, videoId] = matches;
-              e.preventDefault();
-              Transforms.insertNodes(editor, [Model.youtube(videoId)]);
-            }
-          }}
-        />
-      </Slate>
-    </React.Fragment>
+      </Plate>
+    </>
   );
+
+  // // Install the custom normalizer, only once
+  // useEffect(() => {
+  //   if (!installed) {
+  //     installNormalizer(editor, props.normalizerContext);
+  //     setInstalled(true);
+  //   }
+  // }, [installed]);
+
+  // const renderElement = useCallback(
+  //   (renderProps: RenderElementProps) =>
+  //     editorFor(renderProps.element, renderProps, props.commandContext),
+  //   [props.commandContext, editor],
+  // );
+
+  // const onKeyDown = useCallback((e: React.KeyboardEvent) => {
+  //   voidOnKeyDown(editor, e);
+  //   listOnKeyDown(editor, e);
+  //   quoteOnKeyDown(editor, e);
+  //   titleOnKeyDown(editor, e);
+  //   hotkeyHandler(editor, e.nativeEvent, props.commandContext);
+  // }, []);
+
+  // const renderLeaf = useCallback(({ attributes, children, leaf }: RenderLeafProps) => {
+  //   const markup = Object.keys(leaf).reduce(
+  //     (m, k) => (k in Marks ? markFor(k as Mark, m) : m),
+  //     children,
+  //   );
+  //   return <span {...attributes}>{markup}</span>;
+  // }, []);
+
+  // const onChange = (value: Descendant[]) => {
+  //   const { operations } = editor;
+
+  //   // Determine if this onChange was due to an actual content change.
+  //   // Otherwise, undo/redo will save pure selection changes.
+  //   if (operations.filter(({ type }) => type !== 'set_selection').length) {
+  //     props.onEdit(value, editor, operations);
+  //   }
+  // };
+
+  // return (
+  //   <React.Fragment>
+  //     <Slate
+  //       editor={editor}
+  //       value={props.value.length === 0 ? [Model.p()] : props.value}
+  //       onChange={onChange}
+  //     >
+  //       {props.children}
+
+  //       <EditorToolbar
+  //         context={props.commandContext}
+  //         toolbarInsertDescs={props.toolbarInsertDescs}
+  //       />
+
+  //       <Editable
+  //         style={props.style}
+  //         className={classNames(['slate-editor', 'overflow-auto', props.className])}
+  //         readOnly={!props.editMode}
+  //         renderElement={renderElement}
+  //         renderLeaf={renderLeaf}
+  //         placeholder={props.placeholder ?? 'Enter some content here...'}
+  //         onKeyDown={onKeyDown}
+  //         onFocus={emptyOnFocus}
+  //         onPaste={(e) => {
+  //           const pastedText = e.clipboardData?.getData('text')?.trim();
+  //           const youtubeRegex =
+  //             /^(?:(?:https?:)?\/\/)?(?:(?:www|m)\.)?(?:(?:youtube\.com|youtu.be))(?:\/(?:[\w-]+\?v=|embed\/|v\/)?)([\w-]+)(?:\S+)?$/;
+  //           const matches = pastedText.match(youtubeRegex);
+  //           if (matches != null) {
+  //             // matches[0] === the entire url
+  //             // matches[1] === video id
+  //             const [, videoId] = matches;
+  //             e.preventDefault();
+  //             Transforms.insertNodes(editor, [Model.youtube(videoId)]);
+  //           }
+  //         }}
+  //       />
+  //     </Slate>
+  //   </React.Fragment>
+  // );
 }, areEqual);
 Editor.displayName = 'Editor';

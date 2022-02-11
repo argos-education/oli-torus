@@ -65,8 +65,6 @@ export interface Image extends SlateElement<VoidChildren> {
   width?: number;
   alt?: string;
   caption?: string;
-  // Legacy, unused;
-  display?: string;
 }
 
 export interface YouTube extends SlateElement<VoidChildren> {
@@ -76,8 +74,6 @@ export interface YouTube extends SlateElement<VoidChildren> {
   width?: number;
   alt?: string;
   caption?: string;
-  // Legacy, unused;
-  display?: string;
 }
 
 export interface Audio extends SlateElement<VoidChildren> {
@@ -96,8 +92,6 @@ export interface Webpage extends SlateElement<VoidChildren> {
   width?: number;
   alt?: string;
   caption?: string;
-  // Legacy, unused
-  display?: string;
 }
 
 export interface Table extends SlateElement<TableRow[]> {
