@@ -5,18 +5,25 @@ defmodule OliWeb.Sections.GatingAndScheduling.New do
   alias OliWeb.Sections.Mount
   alias OliWeb.Delivery.Sections.GatingAndScheduling.GatingConditionStore
   alias OliWeb.Sections.GatingAndScheduling.Form
+  alias OliWeb.Common.SessionContext
 
   def mount(
-        _params,
+        params,
         %{"section_slug" => section_slug} = session,
         socket
       ) do
-    case Mount.for(section_slug, session) do
-      {:admin, _author, section} ->
-        {:ok, GatingConditionStore.init(socket, __MODULE__, section, "Create Gating Condition")}
+    {parent_gate_id, title} =
+      case Map.get(params, "parent_gate_id") do
+        nil -> {nil, "Create Gating Condition"}
+        id -> {id, "Create Student Exception"}
+      end
 
-      {:user, _current_user, section} ->
-        {:ok, GatingConditionStore.init(socket, __MODULE__, section, "Create Gating Condition")}
+    context = SessionContext.init(session)
+
+    case Mount.for(section_slug, session) do
+      {type, _author, section} when type in [:user, :author, :admin] ->
+        {:ok,
+         GatingConditionStore.init(socket, __MODULE__, section, context, title, parent_gate_id)}
     end
   end
 
@@ -26,7 +33,7 @@ defmodule OliWeb.Sections.GatingAndScheduling.New do
     <div class="container">
       <h3>{@title}</h3>
 
-      <Form id="new_gating_contition" section={@section} gating_condition={@gating_condition} />
+      <Form id="new_gating_contition" section={@section} gating_condition={@gating_condition} parent_gate={@parent_gate} count_exceptions={@count_exceptions} />
     </div>
     """
   end
