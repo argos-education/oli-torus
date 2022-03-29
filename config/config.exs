@@ -196,6 +196,15 @@ config :ex_json_schema,
 # Configure if age verification checkbox appears on learner account creation
 config :oli, :age_verification, is_enabled: System.get_env("IS_AGE_VERIFICATION_ENABLED", "")
 
+# Configure libcluster for horizontal scaling
+# Take into account that different strategies could use different config options
+config :libcluster,
+  topologies: [
+    oli: [
+      strategy: Module.concat([System.get_env("LIBCLUSTER_STRATEGY", "Cluster.Strategy.Gossip")])
+    ]
+  ]
+
 config :oli, :auth_providers,
   google_client_id: System.get_env("GOOGLE_CLIENT_ID", ""),
   google_client_secret: System.get_env("GOOGLE_CLIENT_SECRET", ""),

@@ -30,4 +30,3 @@ See our [Wiki](https://github.com/Simon-Initiative/oli-torus/wiki) for Torus set
 
 For full API Documentation: [simon-initiative.github.io/oli-torus](https://simon-initiative.github.io/oli-torus/Oli.html)
 
-
