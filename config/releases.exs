@@ -225,6 +225,14 @@ config :libcluster,
     ]
   ]
 
+config :oli, :auth_providers,
+  google_client_id: System.get_env("GOOGLE_CLIENT_ID", ""),
+  google_client_secret: System.get_env("GOOGLE_CLIENT_SECRET", ""),
+  author_github_client_id: System.get_env("AUTHOR_GITHUB_CLIENT_ID", ""),
+  author_github_client_secret: System.get_env("AUTHOR_GITHUB_CLIENT_SECRET", ""),
+  user_github_client_id: System.get_env("USER_GITHUB_CLIENT_ID", ""),
+  user_github_client_secret: System.get_env("USER_GITHUB_CLIENT_SECRET", "")
+
 # ## Using releases (Elixir v1.9+)
 #
 # If you are doing OTP releases, you need to instruct Phoenix
