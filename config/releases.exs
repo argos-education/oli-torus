@@ -160,7 +160,7 @@ config :oli, OliWeb.Endpoint,
   ],
   secret_key_base: secret_key_base,
   live_view: [signing_salt: live_view_salt],
-  force_ssl: [rewrite_on: [:x_forwarded_proto], hsts: true],
+  force_ssl: [rewrite_on: [:x_forwarded_proto], hsts: true]
 
 if System.get_env("SSL_CERT_PATH") && System.get_env("SSL_KEY_PATH") do
   config :oli, OliWeb.Endpoint,
