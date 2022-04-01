@@ -11,7 +11,7 @@
 ##-env ERL_FULLSWEEP_AFTER 10
 
 ## Node name
--name oli@${HOSTNAME}
+## -name oli@${HOSTNAME}
 
 ## Node cookie, used for distribution
--setcookie ${NODE_COOKIE}
+## -setcookie ${NODE_COOKIE}
