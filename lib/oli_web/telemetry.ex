@@ -9,7 +9,7 @@ defmodule OliWeb.Telemetry do
   def init(_arg) do
     children = [
       {TelemetryMetricsPrometheus,
-       [metrics: metrics(), port: Application.get_env(:oli, :prometheus_port)]},
+       [metrics: metrics() ++ distribution_metrics(), port: Application.get_env(:oli, :prometheus_port)]},
       {:telemetry_poller, measurements: periodic_measurements(), period: 10_000}
     ]
 
@@ -23,18 +23,6 @@ defmodule OliWeb.Telemetry do
       last_value("vm.total_run_queue_lengths.cpu"),
       last_value("vm.total_run_queue_lengths.io"),
       last_value("vm.system_counts.process_count"),
-      distribution("oli.plug.stop.duration",
-        reporter_options: [buckets: 1..20 |> Enum.map(&(&1 * 25))],
-        unit: {:native, :millisecond}
-      ),
-      distribution("oli.repo.query.total_time",
-        reporter_options: [buckets: 1..40 |> Enum.map(&(&1 * 5))],
-        unit: {:native, :millisecond}
-      ),
-      distribution("oli.resolvers.delivery.duration",
-        reporter_options: [buckets: 1..40 |> Enum.map(&(&1 * 5))],
-        unit: {:native, :millisecond}
-      ),
 
       # Phoenix Metrics
       summary("phoenix.endpoint.stop.duration",
@@ -63,6 +51,24 @@ defmodule OliWeb.Telemetry do
       summary("vm.total_run_queue_lengths.total"),
       summary("vm.total_run_queue_lengths.cpu"),
       summary("vm.total_run_queue_lengths.io")
+    ]
+  end
+
+  # separating these because live_dashboard don't support showing them yet
+  defp distribution_metrics() do
+    [
+      distribution("oli.plug.stop.duration",
+        reporter_options: [buckets: 1..20 |> Enum.map(&(&1 * 25))],
+        unit: {:native, :millisecond}
+      ),
+      distribution("oli.repo.query.total_time",
+        reporter_options: [buckets: 1..40 |> Enum.map(&(&1 * 5))],
+        unit: {:native, :millisecond}
+      ),
+      distribution("oli.resolvers.delivery.duration",
+        reporter_options: [buckets: 1..40 |> Enum.map(&(&1 * 5))],
+        unit: {:native, :millisecond}
+      )
     ]
   end
 
