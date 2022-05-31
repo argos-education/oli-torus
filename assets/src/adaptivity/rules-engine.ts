@@ -79,6 +79,34 @@ const evaluateValueExpression = (value: string, env: Environment) => {
         result = evaluatedValue.result;
       }
     } catch (ex) {
+      // if it's and expression and it wasn't evaluated till this point then it means the equation is something like
+      //{17/1.5*{q:1500660404583:613|stage.DrinkVolume.value}*{q:1500660389923:565|variables.UnknownBeaker}*176.12} and script engine can't evaluate the expression if it
+      // starts with {} and the brackets does not begin with an actual variable. we need to send it as '17/1.5*{q:1500660404583:613|stage.DrinkVolume.value}*{q:1500660389923:565|variables.UnknownBeaker}*176.12'
+      const expressions = extractAllExpressionsFromText(value);
+      //adding more safety so that it does not break anything else.
+      // A expression will not have a ';' inside it. So if there is a ';' inside it, it is CSS. Ignore that
+      const updatedVariables = expressions.filter((e) => !e.includes(';'));
+      const updatedValue = typeof value === 'string' ? value.trim() : value;
+      if (
+        typeof updatedValue === 'string' &&
+        updatedVariables?.length &&
+        updatedValue[0] === '{' &&
+        updatedValue[updatedValue.length - 1] === '}'
+      ) {
+        try {
+          const evaluatedValue = evalScript(
+            updatedValue.substring(1, updatedValue.length - 1),
+            env,
+          );
+
+          const canEval = evaluatedValue?.result !== undefined && !evaluatedValue.result.message;
+          if (canEval) {
+            result = evaluatedValue.result;
+          }
+        } catch (ex) {
+          return result;
+        }
+      }
       return result;
     }
   }
@@ -153,6 +181,28 @@ const processRules = (rules: JanusRuleProperties[], env: Environment) => {
         ogValue.slice(-1) !== ']'
       ) {
         modifiedValue = `[${ogValue}]`;
+      }
+
+      if (
+        condition?.type === CapiVariableTypes.ARRAY &&
+        (condition?.operator === 'containsAnyOf' || condition?.operator === 'notContainsAnyOf')
+      ) {
+        const targetValue = getValue(condition.fact, env);
+        if (
+          typeof targetValue === 'string' &&
+          targetValue.charAt(0) !== '[' &&
+          targetValue.slice(-1) !== ']'
+        ) {
+          const modifiedTargetValue = `[${targetValue}]`;
+          const updateAttempt = [
+            {
+              target: `${condition.fact}`,
+              operator: '=',
+              value: modifiedTargetValue,
+            },
+          ];
+          bulkApplyState(updateAttempt, env);
+        }
       }
       condition.value = modifiedValue;
     });
@@ -279,16 +329,56 @@ export const findReferencedActivitiesInConditions = (conditions: any) => {
         }
       });
     }
+    if (Array.isArray(condition.value)) {
+      condition.value.forEach((subValue: any) => {
+        if (typeof subValue === 'string' && subValue.indexOf('|stage.') !== -1) {
+          // value could have more than one reference inside it
+          const exprs = extractAllExpressionsFromText(subValue);
+          exprs.forEach((expr: string) => {
+            if (expr.indexOf('|stage.') !== -1) {
+              const referencedSequenceId = expr.split('|stage.')[0];
+              referencedActivities.add(referencedSequenceId);
+            }
+          });
+        }
+      });
+    }
     if (condition.any || condition.all) {
       const childRefs = findReferencedActivitiesInConditions(condition.any || condition.all);
       childRefs.forEach((ref) => referencedActivities.add(ref));
     }
   });
+  /* console.log(
+    'referencedActivities: ',
+    referencedActivities,
+    Array.from(referencedActivities).filter((ref) => ref.indexOf('{') !== -1),
+    conditions,
+  ); */
   return Array.from(referencedActivities);
 };
 
 export const getReferencedKeysInConditions = (conditions: any) => {
   const references: Set<string> = new Set();
+
+  const extractRefsFromString = (str: string) => {
+    // value could have more than one reference inside it
+    const exprs = extractAllExpressionsFromText(str);
+    const expressions = str.match(/{([^{^}]+)}/g) || [];
+    exprs.forEach((expr: string) => {
+      if (expr.search(/app\.|variables\.|stage\.|session\./) !== -1) {
+        references.add(expr);
+      }
+    });
+    expressions.forEach((expr: string) => {
+      if (expr.search(/app\.|variables\.|stage\.|session\./) !== -1) {
+        //we should remove the {}
+        const actualExp = expr.substring(1, expr.length - 1);
+        if (!references.has(actualExp)) {
+          references.add(expr.substring(1, expr.length - 1));
+        }
+      }
+    });
+  };
 
   conditions.forEach(
     (condition: {
@@ -302,25 +392,12 @@ export const getReferencedKeysInConditions = (conditions: any) => {
         references.add(condition.fact);
       }
       // the value *might* contain a reference to a key we need
-      if (
-        typeof condition.value === 'string' &&
-        condition.value.search(/app\.|variables\.|stage\.|session\./) !== -1
-      ) {
-        // value could have more than one reference inside it
-        const exprs = extractAllExpressionsFromText(condition.value);
-        const expressions = condition.value.match(/{([^{^}]+)}/g) || [];
-        exprs.forEach((expr: string) => {
-          if (expr.search(/app\.|variables\.|stage\.|session\./) !== -1) {
-            references.add(expr);
-          }
-        });
-        expressions.forEach((expr: string) => {
-          if (expr.search(/app\.|variables\.|stage\.|session\./) !== -1) {
-            //we should remove the {}
-            const actualExp = expr.substring(1, expr.length - 1);
-            if (!references.has(actualExp)) {
-              references.add(expr.substring(1, expr.length - 1));
-            }
+      if (typeof condition.value === 'string') {
+        extractRefsFromString(condition.value);
+      } else if (Array.isArray(condition.value)) {
+        condition.value.forEach((value: any) => {
+          if (typeof value === 'string') {
+            extractRefsFromString(value);
           }
         });
       }
@@ -350,6 +427,20 @@ export const findReferencedActivitiesInActions = (actions: any) => {
             if (expr.indexOf('|stage.') !== -1) {
               const referencedSequenceId = expr.split('|stage.')[0];
               referencedActivities.add(referencedSequenceId);
+            }
+          });
+        }
+        if (Array.isArray(action.value)) {
+          action.value.forEach((subValue: any) => {
+            if (typeof subValue === 'string' && subValue.indexOf('|stage.') !== -1) {
+              // value could have more than one reference inside it
+              const exprs = extractAllExpressionsFromText(subValue);
+              exprs.forEach((expr: string) => {
+                if (expr.indexOf('|stage.') !== -1) {
+                  const referencedSequenceId = expr.split('|stage.')[0];
+                  referencedActivities.add(referencedSequenceId);
+                }
+              });
             }
           });
         }

@@ -1,5 +1,5 @@
 import { Environment, Evaluator, Lexer, Parser } from 'janus-script';
-import { parseArray, parseBoolean } from 'utils/common';
+import { formatNumber, parseArray, parseBoolean } from 'utils/common';
 import { CapiVariableTypes, getCapiType } from './capi';
 import { janus_std } from './janus-scripts/builtin_functions';
 
@@ -84,17 +84,39 @@ export const getExpressionStringForValue = (
       val = val.replace(/[[\]]+/g, '');
     }
     if (val.includes('},{') || val.includes('}, {')) {
-      val = JSON.stringify(val.split(',')).replace(/"/g, '');
+      const expressions = extractAllExpressionsFromText(val);
+      if (val[0] === '{' && val[val.length - 1] === '}' && expressions?.length === 1) {
+        try {
+          const modifiedValue = val.substring(1, val.length - 1);
+          const evaluatedValue = evalScript(modifiedValue, env).result;
+          if (evaluatedValue !== undefined) {
+            val = evaluatedValue;
+          }
+        } catch (ex) {
+          val = JSON.stringify(val.split(',')).replace(/"/g, '');
+        }
+      } else {
+        val = JSON.stringify(val.split(',')).replace(/"/g, '');
+      }
     }
 
     // it might be CSS string, which can be decieving
     let actuallyAString = false;
     const expressions = extractAllExpressionsFromText(val);
-    // A expression will not have a ';' inside it. So if there is a ';' inside it, it is CSS.
+    // A expression will not have a ';' inside it.So if there is a ';' inside it, it is CSS.
     const isCSSString = expressions.filter((e) => e.includes(';'));
     if (isCSSString?.length) {
       actuallyAString = true;
     }
+
+    // at this point, if the value fails an evalScript check, it is probably a math expression
+    try {
+      const testEnv = new Environment(env);
+      evalScript(val, testEnv);
+    } catch (err) {
+      actuallyAString = true;
+    }
+
     if (!actuallyAString) {
       try {
         const testEnv = new Environment(env);
@@ -133,14 +155,27 @@ export const getExpressionStringForValue = (
       } catch (e) {
         //lets evaluat everything if first and last char are {}
         if (val[0] === '{' && val[val.length - 1] === '}') {
-          const evaluatedValuess = evalScript(expressions[0], env).result;
-          if (evaluatedValuess !== undefined) {
-            val = evaluatedValuess;
+          const evaluatedValues = evalScript(expressions[0], env).result;
+          if (evaluatedValues !== undefined) {
+            val = evaluatedValues;
             actuallyAString = false;
           }
         } else {
-          // if we have parsing error then we're guessing it's CSS
-          actuallyAString = true;
+          const containsExpression = val.match(/{([^{^}]+)}/g) || [];
+          if (containsExpression?.length) {
+            try {
+              const modifiedVal = templatizeText(val, {}, env);
+              const updatedValue = evalScript(modifiedVal, env).result;
+              if (updatedValue !== undefined) {
+                val = updatedValue;
+              }
+            } catch (ex) {
+              actuallyAString = true;
+            }
+          } else {
+            // if we have parsing error then we're guessing it's CSS
+            actuallyAString = true;
+          }
         }
       }
     }
@@ -157,9 +192,13 @@ export const getExpressionStringForValue = (
     if (typeof val !== 'string') {
       val = JSON.stringify(val);
     }
+    if (!val) {
+      val = '';
+    }
     // strings need to have escaped quotes and backslashes
     // for janus-script
-    val = `"${val.replace(/\\/g, '\\\\').replace(/"/g, '\\"').replace(/\n/g, '')}"`;
+    // PMP-2785: Replacing the new line with the space
+    val = `"${val.replace(/\\/g, '\\\\').replace(/"/g, '\\"').replace(/\n/g, ' ')}"`;
   }
 
   if (v.type === CapiVariableTypes.ARRAY || v.type === CapiVariableTypes.ARRAY_POINT) {
@@ -457,8 +496,17 @@ export const templatizeText = (
   locals: any,
   env?: Environment,
   isFromTrapStates = false,
+  useFormattedText = true,
 ): string => {
   let innerEnv = env; // TODO: this should be a child scope
+  // if the text contains backslash, it is probably a math expr like: '16^{\\frac{1}{2}}=\\sqrt {16}={\\editable{}}'
+  // and we should just return it as is; if it has variables inside, then we still need to evaluate it
+  if (
+    typeof text !== 'string' ||
+    (text?.indexOf('\\') >= 0 && text?.search(/app\.|variables\.|stage\.|session\./) === -1)
+  ) {
+    return text;
+  }
   let vars = extractAllExpressionsFromText(text);
   const totalVariablesLength = vars?.length;
   // A expression will not have a ';' inside it. So if there is a ';' inside it, it is CSS and we should filter it.
@@ -542,14 +590,18 @@ export const templatizeText = (
       }
     }
     let strValue = stateValue;
-    /* console.log({ strValue, typeOD: typeof stateValue }); */
-
-    if (Array.isArray(stateValue)) {
-      strValue = stateValue.map((v) => `"${v}"`).join(', ');
-    } else if (typeof stateValue === 'object') {
-      strValue = JSON.stringify(stateValue);
-    } else if (typeof stateValue === 'number') {
-      strValue = parseFloat(parseFloat(strValue).toString());
+    if (useFormattedText) {
+      if (Array.isArray(stateValue)) {
+        strValue = stateValue.map((v) => `"${v}"`).join(', ');
+      } else if (typeof stateValue === 'object') {
+        strValue = JSON.stringify(stateValue);
+      } else if (typeof stateValue === 'number') {
+        strValue = parseFloat(parseFloat(strValue).toFixed(4));
+      }
+    } else {
+      if (typeof stateValue === 'object' && !Array.isArray(stateValue)) {
+        strValue = JSON.stringify(stateValue);
+      }
     }
     return strValue;
   });
@@ -558,7 +610,7 @@ export const templatizeText = (
     templatizedText = templatizedText.replace(`{${v}}`, `${vals[index]}`);
   });
 
-  // support nested {} like {{variables.foo} * 3}
+  // support nested {}  like {{variables.foo} * 3}
   return templatizedText; // templatizeText(templatizedText, state, innerEnv);
 };
 

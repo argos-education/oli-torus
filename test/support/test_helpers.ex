@@ -1,19 +1,20 @@
 defmodule Oli.TestHelpers do
   import Ecto.Query, warn: false
+  import Mox
+  import Oli.Factory
 
   alias Oli.Repo
   alias Oli.Accounts
-  alias Oli.Institutions
-  alias Oli.Accounts.User
-  alias Oli.Accounts.Author
+  alias Oli.Accounts.{Author, User}
   alias Oli.Authoring.Course
   alias Oli.Authoring.Course.Project
-  alias Oli.Delivery.Sections.Section
-  alias Oli.Publishing
-  alias Oli.PartComponents
   alias Oli.Delivery.Sections
-
-  import Mox
+  alias Oli.Delivery.Sections.Section
+  alias Oli.Institutions
+  alias Oli.PartComponents
+  alias Oli.Publishing
+  alias OliWeb.Common.LtiSession
+  alias Lti_1p3.Tool.ContextRoles
 
   Mox.defmock(Oli.Test.MockHTTP, for: HTTPoison.Base)
   Mox.defmock(Oli.Test.MockAws, for: ExAws.Behaviour)
@@ -243,11 +244,65 @@ defmodule Oli.TestHelpers do
     |> Repo.insert()
   end
 
-  def user_conn(%{conn: conn}) do
-    user = user_fixture()
+  def independent_instructor_conn(context), do: user_conn(context, %{can_create_sections: true})
+
+  def user_conn(%{conn: conn}, attrs \\ %{}) do
+    user = user_fixture(attrs)
     conn = Pow.Plug.assign_current_user(conn, user, OliWeb.Pow.PowHelpers.get_pow_config(:user))
 
     {:ok, conn: conn, user: user}
+  end
+
+  def instructor_conn(%{conn: conn}) do
+    {:ok, instructor} =
+      Accounts.update_user_platform_roles(
+        insert(:user, %{can_create_sections: true, independent_learner: true}),
+        [Lti_1p3.Tool.PlatformRoles.get_role(:institution_instructor)]
+      )
+
+    conn =
+      conn
+      |> Plug.Test.init_test_session(lti_session: nil)
+      |> Pow.Plug.assign_current_user(instructor, OliWeb.Pow.PowHelpers.get_pow_config(:user))
+
+    {:ok, conn: conn}
+  end
+
+  def lms_instructor_conn(%{conn: conn}) do
+    institution = insert(:institution)
+    tool_jwk = jwk_fixture()
+    registration = insert(:lti_registration, %{tool_jwk_id: tool_jwk.id})
+    deployment = insert(:lti_deployment, %{institution: institution, registration: registration})
+    instructor = insert(:user)
+
+    lti_param_ids = %{
+      instructor:
+        cache_lti_params(
+          %{
+            "iss" => registration.issuer,
+            "aud" => registration.client_id,
+            "sub" => instructor.sub,
+            "exp" => Timex.now() |> Timex.add(Timex.Duration.from_hours(1)) |> Timex.to_unix(),
+            "https://purl.imsglobal.org/spec/lti/claim/context" => %{
+              "id" => "some_id",
+              "title" => "some_title"
+            },
+            "https://purl.imsglobal.org/spec/lti/claim/roles" => [
+              "http://purl.imsglobal.org/vocab/lis/v2/membership#Instructor"
+            ],
+            "https://purl.imsglobal.org/spec/lti/claim/deployment_id" => deployment.deployment_id
+          },
+          instructor.id
+        )
+    }
+
+    conn =
+      conn
+      |> Plug.Test.init_test_session(lti_session: nil)
+      |> Pow.Plug.assign_current_user(instructor, OliWeb.Pow.PowHelpers.get_pow_config(:user))
+      |> LtiSession.put_session_lti_params(lti_param_ids.instructor)
+
+    {:ok, conn: conn}
   end
 
   def author_conn(%{conn: conn}) do
@@ -330,6 +385,25 @@ defmodule Oli.TestHelpers do
     end)
   end
 
+  # Sets up a mock to simulate a recaptcha failure
+  def expect_recaptcha_http_failure_post() do
+    verify_recaptcha_url = Application.fetch_env!(:oli, :recaptcha)[:verify_url]
+
+    Oli.Test.MockHTTP
+    |> expect(:post, fn ^verify_recaptcha_url, _body, _headers, _opts ->
+      {:ok,
+       %HTTPoison.Response{
+         status_code: 200,
+         body:
+           Jason.encode!(%{
+             "challenge_ts" => "some-challenge-ts",
+             "hostname" => "testkey.google.com",
+             "success" => false
+           })
+       }}
+    end)
+  end
+
   def part_component_registration_fixture(attrs \\ %{}) do
     params =
       attrs
@@ -357,7 +431,7 @@ defmodule Oli.TestHelpers do
   def make_sections(project, institution, prefix, n, attrs) do
     65..(65 + (n - 1))
     |> Enum.map(fn value -> List.to_string([value]) end)
-    |> Enum.map(fn value -> make(project, institution, "#{prefix}-#{value}", attrs) end)
+    |> Enum.map(fn value -> make(project, institution, "#{prefix}#{value}", attrs) end)
   end
 
   def make(project, institution, title, attrs) do
@@ -386,6 +460,123 @@ defmodule Oli.TestHelpers do
       )
 
     section
+  end
+
+  @doc """
+    Creates an open and free section for a given project
+  """
+  def open_and_free_section(project, attrs) do
+    insert(
+      :section,
+      Map.merge(
+        %{
+          base_project: project,
+          context_id: UUID.uuid4(),
+          open_and_free: true,
+          registration_open: true,
+          display_curriculum_item_numbering: attrs.display_curriculum_item_numbering
+        },
+        attrs
+      )
+    )
+  end
+
+  @doc """
+    Creates and publishes a project with a curriculum composed of a root container, a unit, and a nested page.
+  """
+  def base_project_with_curriculum(_) do
+    project = insert(:project)
+
+    nested_page_resource = insert(:resource)
+
+    nested_page_revision =
+      insert(:revision, %{
+        objectives: %{"attached" => []},
+        scoring_strategy_id: Oli.Resources.ScoringStrategy.get_id_by_type("average"),
+        resource_type_id: Oli.Resources.ResourceType.get_id_by_type("page"),
+        children: [],
+        content: %{"model" => []},
+        deleted: false,
+        title: "Nested page 1",
+        resource: nested_page_resource
+      })
+
+    # Associate nested page to the project
+    insert(:project_resource, %{project_id: project.id, resource_id: nested_page_resource.id})
+
+    unit_one_resource = insert(:resource)
+
+    # Associate unit to the project
+    insert(:project_resource, %{
+      resource_id: unit_one_resource.id,
+      project_id: project.id
+    })
+
+    unit_one_revision =
+      insert(:revision, %{
+        objectives: %{},
+        resource_type_id: Oli.Resources.ResourceType.get_id_by_type("container"),
+        children: [nested_page_resource.id],
+        content: %{"model" => []},
+        deleted: false,
+        title: "The first unit",
+        resource: unit_one_resource,
+        slug: "first_unit"
+      })
+
+    # root container
+    container_resource = insert(:resource)
+
+    # Associate root container to the project
+    insert(:project_resource, %{project_id: project.id, resource_id: container_resource.id})
+
+    container_revision =
+      insert(:revision, %{
+        resource: container_resource,
+        objectives: %{},
+        resource_type_id: Oli.Resources.ResourceType.get_id_by_type("container"),
+        children: [unit_one_resource.id],
+        content: %{},
+        deleted: false,
+        slug: "root_container",
+        title: "Root Container"
+      })
+
+    # Publication of project with root container
+    publication =
+      insert(:publication, %{project: project, root_resource_id: container_resource.id})
+
+    # Publish root container resource
+    insert(:published_resource, %{
+      publication: publication,
+      resource: container_resource,
+      revision: container_revision
+    })
+
+    # Publish nested page resource
+    insert(:published_resource, %{
+      publication: publication,
+      resource: nested_page_resource,
+      revision: nested_page_revision
+    })
+
+    # Publish unit one resource
+    insert(
+      :published_resource,
+      %{
+        resource: unit_one_resource,
+        publication: publication,
+        revision: unit_one_revision
+      }
+    )
+
+    %{publication: publication, project: project}
+  end
+
+  def enroll_user_to_section(user, section, role) do
+    Sections.enroll(user.id, section.id, [
+      ContextRoles.get_role(role)
+    ])
   end
 
   def set_timezone(%{conn: conn}) do

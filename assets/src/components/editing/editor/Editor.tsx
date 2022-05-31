@@ -18,7 +18,7 @@ import { withInlines } from './overrides/inlines';
 import { withMarkdown } from './overrides/markdown';
 import { withTables } from './overrides/tables';
 import { withVoids } from './overrides/voids';
-import { EditorToolbar } from 'components/editing/toolbar/EditorToolbar';
+import { EditorToolbar } from 'components/editing/toolbar/editorToolbar/EditorToolbar';
 
 export type EditorProps = {
   // Callback when there has been any change to the editor
@@ -35,6 +35,7 @@ export type EditorProps = {
   style?: React.CSSProperties;
   placeholder?: string;
   children?: React.ReactNode;
+  onPaste?: React.ClipboardEventHandler<HTMLDivElement>;
 };
 
 // Necessary to work around FireFox focus and selection issues with Slate
@@ -113,10 +114,7 @@ export const Editor: React.FC<EditorProps> = React.memo((props: EditorProps) => 
       >
         {props.children}
 
-        <EditorToolbar
-          context={props.commandContext}
-          toolbarInsertDescs={props.toolbarInsertDescs}
-        />
+        <EditorToolbar context={props.commandContext} insertOptions={props.toolbarInsertDescs} />
 
         <Editable
           style={props.style}
@@ -124,10 +122,12 @@ export const Editor: React.FC<EditorProps> = React.memo((props: EditorProps) => 
           readOnly={!props.editMode}
           renderElement={renderElement}
           renderLeaf={renderLeaf}
-          placeholder={props.placeholder ?? 'Enter some content here...'}
+          placeholder={props.placeholder ?? 'Type here or use + to begin...'}
           onKeyDown={onKeyDown}
           onFocus={emptyOnFocus}
           onPaste={(e) => {
+            if (props.onPaste) return props.onPaste(e);
+
             const pastedText = e.clipboardData?.getData('text')?.trim();
             const youtubeRegex =
               /^(?:(?:https?:)?\/\/)?(?:(?:www|m)\.)?(?:(?:youtube\.com|youtu.be))(?:\/(?:[\w-]+\?v=|embed\/|v\/)?)([\w-]+)(?:\S+)?$/;

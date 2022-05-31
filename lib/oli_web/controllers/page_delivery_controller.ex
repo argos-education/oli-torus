@@ -6,6 +6,8 @@ defmodule OliWeb.PageDeliveryController do
   alias Oli.Delivery.Page.PageContext
   alias Oli.Delivery.Sections
   alias Oli.Delivery.Sections.Section
+  alias Oli.Delivery.Paywall
+  alias Oli.Delivery.Paywall.Discount
   alias Oli.Rendering.Context
   alias Oli.Rendering.Page
   alias Oli.Activities
@@ -17,9 +19,10 @@ defmodule OliWeb.PageDeliveryController do
   alias Oli.Grading
   alias Oli.PartComponents
   alias Oli.Rendering.Activity.ActivitySummary
-  alias Lti_1p3.Tool.ContextRoles
   alias Oli.Publishing.DeliveryResolver, as: Resolver
   alias Oli.Resources.Revision
+
+  plug(Oli.Plugs.AuthorizeSection when action in [:export_enrollments, :export_gradebook])
 
   def index_preview(conn, %{"section_slug" => section_slug}) do
     user = conn.assigns.current_user
@@ -45,6 +48,7 @@ defmodule OliWeb.PageDeliveryController do
               description: section.description,
               section_slug: section_slug,
               hierarchy: hierarchy,
+              display_curriculum_item_numbering: section.display_curriculum_item_numbering,
               preview_mode: true,
               page_link_url: &Routes.page_delivery_path(conn, :page_preview, section_slug, &1),
               container_link_url:
@@ -79,6 +83,7 @@ defmodule OliWeb.PageDeliveryController do
             description: section.description,
             section_slug: section_slug,
             hierarchy: hierarchy,
+            display_curriculum_item_numbering: section.display_curriculum_item_numbering,
             preview_mode: false,
             page_link_url: &Routes.page_delivery_path(conn, :page, section_slug, &1),
             container_link_url: &Routes.page_delivery_path(conn, :container, section_slug, &1)
@@ -148,10 +153,14 @@ defmodule OliWeb.PageDeliveryController do
             section_slug: section_slug,
             previous_page: previous,
             next_page: next,
+            current_page: current,
             preview_mode: preview_mode,
             page_link_url: page_link_url,
             container_link_url: container_link_url,
-            active_page: nil
+            active_page: nil,
+            revision: revision,
+            resource_slug: revision.slug,
+            display_curriculum_item_numbering: section.display_curriculum_item_numbering
           )
 
         # Any attempt to render a valid revision that is not container or page gets an error
@@ -170,10 +179,13 @@ defmodule OliWeb.PageDeliveryController do
     end
   end
 
-  def page_preview(conn, %{
-        "section_slug" => section_slug,
-        "revision_slug" => revision_slug
-      }) do
+  def page_preview(
+        conn,
+        %{
+          "section_slug" => section_slug,
+          "revision_slug" => revision_slug
+        }
+      ) do
     user = conn.assigns.current_user
     current_author = conn.assigns.current_author
     is_admin? = Oli.Accounts.is_admin?(current_author)
@@ -227,8 +239,6 @@ defmodule OliWeb.PageDeliveryController do
   defp render_preview_mode(conn, section_slug, revision) do
     section = conn.assigns.section
 
-    page_model = Map.get(revision.content, "model")
-
     type_by_id =
       Activities.list_activity_registrations()
       |> Enum.reduce(%{}, fn e, m -> Map.put(m, e.id, e) end)
@@ -239,7 +249,7 @@ defmodule OliWeb.PageDeliveryController do
       end)
       |> Enum.map(fn %{"activity_id" => id} -> id end)
 
-    {:ok, {previous, next, _}, _} =
+    {:ok, {previous, next, current}, _} =
       Oli.Delivery.PreviousNextIndex.retrieve(section, revision.resource_id)
 
     activity_map =
@@ -271,7 +281,7 @@ defmodule OliWeb.PageDeliveryController do
       activity_types_map: Enum.reduce(all_activities, %{}, fn a, m -> Map.put(m, a.id, a) end)
     }
 
-    html = Page.render(render_context, page_model, Page.Html)
+    html = Page.render(render_context, revision.content, Page.Html)
 
     conn = put_root_layout(conn, {OliWeb.LayoutView, "page.html"})
 
@@ -285,13 +295,17 @@ defmodule OliWeb.PageDeliveryController do
         preview_mode: true,
         previous_page: previous,
         next_page: next,
+        current_page: current,
         title: revision.title,
         html: html,
         objectives: [],
         section: section,
         revision: revision,
         page_link_url: &Routes.page_delivery_path(conn, :page_preview, section_slug, &1),
-        container_link_url: &Routes.page_delivery_path(conn, :container_preview, section_slug, &1)
+        container_link_url:
+          &Routes.page_delivery_path(conn, :container_preview, section_slug, &1),
+        resource_slug: revision.slug,
+        display_curriculum_item_numbering: section.display_curriculum_item_numbering
       }
     )
   end
@@ -313,6 +327,8 @@ defmodule OliWeb.PageDeliveryController do
     resource_attempts = Enum.filter(resource_attempts, fn a -> a.revision.graded == true end)
 
     attempts_taken = length(resource_attempts)
+
+    preview_mode = Map.get(conn.assigns, :preview_mode, false)
 
     # The call to "max" here accounts for the possibility that a publication could reduce the
     # number of attempts after a student has exhausted all attempts
@@ -345,7 +361,7 @@ defmodule OliWeb.PageDeliveryController do
         r1.date_evaluated <= r2.date_evaluated
       end)
 
-    {:ok, {previous, next, _}, _} =
+    {:ok, {previous, next, current}, _} =
       Oli.Delivery.PreviousNextIndex.retrieve(section, page.resource_id)
 
     {:ok, summary} =
@@ -355,9 +371,11 @@ defmodule OliWeb.PageDeliveryController do
       summary: summary,
       section_slug: section_slug,
       scripts: Activities.get_activity_scripts(),
+      preview_mode: preview_mode,
       resource_attempts: resource_attempts,
       previous_page: previous,
       next_page: next,
+      current_page: current,
       title: context.page.title,
       allow_attempt?: allow_attempt?,
       message: message,
@@ -366,10 +384,13 @@ defmodule OliWeb.PageDeliveryController do
       max_attempts: page.max_attempts,
       section: section,
       page_link_url: &Routes.page_delivery_path(conn, :page, section_slug, &1),
-      container_link_url: &Routes.page_delivery_path(conn, :container, section_slug, &1)
+      container_link_url: &Routes.page_delivery_path(conn, :container, section_slug, &1),
+      revision: context.page,
+      resource_slug: context.page.slug
     })
   end
 
+  # Advanced / adaptive lesson page rendering
   defp render_page(
          %PageContext{page: %{content: %{"advancedDelivery" => true}}} = context,
          conn,
@@ -389,39 +410,60 @@ defmodule OliWeb.PageDeliveryController do
     user = conn.assigns.current_user
 
     resource_attempt = Enum.at(context.resource_attempts, 0)
-    {:ok, resource_attempt_state} = Jason.encode(resource_attempt.state)
 
-    {:ok, activity_guid_mapping} =
-      context.activities
-      |> Jason.encode()
-
-    {:ok, {previous, next, _}, _} =
+    {:ok, {previous, next, current}, _} =
       Oli.Delivery.PreviousNextIndex.retrieve(section, context.page.resource_id)
 
+    previous_url = url_from_desc(conn, section_slug, previous)
+    next_url = url_from_desc(conn, section_slug, next)
+
+    activity_types = Activities.activities_for_section()
+
     render(conn, "advanced_delivery.html", %{
-      review_mode: context.review_mode,
-      graded: context.page.graded,
-      additional_stylesheets: Map.get(context.page.content, "additionalStylesheets", []),
-      resource_attempt_guid: resource_attempt.attempt_guid,
-      latest_attempts: %{},
+      app_params: %{
+        activityTypes: activity_types,
+        resourceId: context.page.resource_id,
+        sectionSlug: section_slug,
+        userId: user.id,
+        userName: conn.assigns.current_user.name,
+        pageTitle: context.page.title,
+        pageSlug: context.page.slug,
+        graded: context.page.graded,
+        content: context.page.content,
+        resourceAttemptState: resource_attempt.state,
+        resourceAttemptGuid: resource_attempt.attempt_guid,
+        activityGuidMapping: context.activities,
+        previousPageURL: previous_url,
+        nextPageURL: next_url,
+        previewMode: preview_mode,
+        reviewMode: context.review_mode,
+        overviewURL: Routes.page_delivery_path(conn, :index, section.slug),
+        finalizeGradedURL: Routes.page_delivery_path(conn, :finalize_attempt, section.slug, context.page.slug, resource_attempt.attempt_guid)
+      },
       activity_type_slug_mapping: %{},
-      resource_attempt_state: resource_attempt_state,
-      activity_guid_mapping: activity_guid_mapping,
-      content: Jason.encode!(context.page.content),
-      activity_types: Activities.activities_for_section(),
-      scripts: Activities.get_activity_scripts(:delivery_script),
-      part_scripts: PartComponents.get_part_component_scripts(:delivery_script),
-      section_slug: section_slug,
-      title: context.page.title,
-      resource_id: context.page.resource_id,
-      slug: context.page.slug,
-      previous_page: previous,
+      activity_types: activity_types,
+      additional_stylesheets: Map.get(context.page.content, "additionalStylesheets", []),
+      graded: context.page.graded,
+      latest_attempts: %{},
       next_page: next,
+      current_page: current,
       user_id: user.id,
+      next_url: next_url,
+      part_scripts: PartComponents.get_part_component_scripts(:delivery_script),
       preview_mode: preview_mode,
+      previous_url: previous_url,
+      previous_page: previous,
+      resource_attempt_guid: resource_attempt.attempt_guid,
+      resource_id: context.page.resource_id,
       section: section,
       page_link_url: &Routes.page_delivery_path(conn, :page, section_slug, &1),
-      container_link_url: &Routes.page_delivery_path(conn, :container, section_slug, &1)
+      container_link_url: &Routes.page_delivery_path(conn, :container, section_slug, &1),
+      revision: context.page,
+      resource_slug: context.page.slug,
+      section_slug: section_slug,
+      slug: context.page.slug,
+      scripts: Activities.get_activity_scripts(:delivery_script),
+      title: context.page.title
     })
   end
 
@@ -433,6 +475,8 @@ defmodule OliWeb.PageDeliveryController do
   # handling review mode
   defp render_page(%PageContext{} = context, conn, section_slug, user, _) do
     section = conn.assigns.section
+
+    preview_mode = Map.get(conn.assigns, :preview_mode, false)
 
     render_context = %Context{
       # Allow admin authors to review student work
@@ -453,29 +497,31 @@ defmodule OliWeb.PageDeliveryController do
     }
 
     this_attempt = context.resource_attempts |> hd
-    page_model = Map.get(this_attempt.content, "model")
-    html = Page.render(render_context, page_model, Page.Html)
+    html = Page.render(render_context, this_attempt.content, Page.Html)
 
     conn = put_root_layout(conn, {OliWeb.LayoutView, "page.html"})
 
     all_activities = Activities.list_activity_registrations()
 
-    {:ok, {previous, next, _}, _} =
+    {:ok, {previous, next, current}, _} =
       Oli.Delivery.PreviousNextIndex.retrieve(section, context.page.resource_id)
 
     render(
       conn,
       "page.html",
       %{
+        context: context,
         page: context.page,
         review_mode: context.review_mode,
         progress_state: context.progress_state,
         section_slug: section_slug,
         scripts: Enum.map(all_activities, fn a -> a.delivery_script end),
+        preview_mode: preview_mode,
         activity_type_slug_mapping:
           Enum.reduce(all_activities, %{}, fn a, m -> Map.put(m, a.id, a.slug) end),
         previous_page: previous,
         next_page: next,
+        current_page: current,
         title: context.page.title,
         graded: context.page.graded,
         activity_count: map_size(context.activities),
@@ -488,7 +534,9 @@ defmodule OliWeb.PageDeliveryController do
         section: section,
         children: context.page.children,
         page_link_url: &Routes.page_delivery_path(conn, :page, section_slug, &1),
-        container_link_url: &Routes.page_delivery_path(conn, :container, section_slug, &1)
+        container_link_url: &Routes.page_delivery_path(conn, :container, section_slug, &1),
+        revision: context.page,
+        resource_slug: context.page.slug
       }
     )
   end
@@ -542,10 +590,13 @@ defmodule OliWeb.PageDeliveryController do
     end
   end
 
-  def review_attempt(conn, %{
-        "section_slug" => section_slug,
-        "attempt_guid" => attempt_guid
-      }) do
+  def review_attempt(
+        conn,
+        %{
+          "section_slug" => section_slug,
+          "attempt_guid" => attempt_guid
+        }
+      ) do
     user = conn.assigns.current_user
     author = conn.assigns.current_author
 
@@ -599,6 +650,8 @@ defmodule OliWeb.PageDeliveryController do
     section = conn.assigns.section
     context = PageContext.create_for_visit(section, revision_slug, user)
 
+    preview_mode = Map.get(conn.assigns, :preview_mode, false)
+
     message =
       if context.page.max_attempts == 0 do
         "You have an unlimited number of attempts remaining"
@@ -617,7 +670,7 @@ defmodule OliWeb.PageDeliveryController do
 
     conn = put_root_layout(conn, {OliWeb.LayoutView, "page.html"})
 
-    {:ok, {previous, next, _}, _} =
+    {:ok, {previous, next, current}, _} =
       Oli.Delivery.PreviousNextIndex.retrieve(section, context.page.resource_id)
 
     render(conn, "after_finalized.html",
@@ -625,14 +678,18 @@ defmodule OliWeb.PageDeliveryController do
       section_slug: section_slug,
       attempt_guid: attempt_guid,
       scripts: Activities.get_activity_scripts(),
+      preview_mode: preview_mode,
       previous_page: previous,
       next_page: next,
+      current_page: current,
       title: context.page.title,
       message: message,
       slug: context.page.slug,
       section: section,
       page_link_url: &Routes.page_delivery_path(conn, :page, section_slug, &1),
-      container_link_url: &Routes.page_delivery_path(conn, :container, section_slug, &1)
+      container_link_url: &Routes.page_delivery_path(conn, :container, section_slug, &1),
+      revision: context.page,
+      resource_slug: context.page.slug
     )
   end
 
@@ -645,24 +702,69 @@ defmodule OliWeb.PageDeliveryController do
   end
 
   def export_gradebook(conn, %{"section_slug" => section_slug}) do
-    user = conn.assigns.current_user
+    section = Sections.get_section_by(slug: section_slug)
 
-    if is_admin?(conn) or
-         ContextRoles.has_role?(user, section_slug, ContextRoles.get_role(:context_instructor)) do
-      section = Sections.get_section_by(slug: section_slug)
+    gradebook_csv = Grading.export_csv(section) |> Enum.join("")
 
-      gradebook_csv = Grading.export_csv(section) |> Enum.join("")
+    filename =
+      "#{Slug.slugify(section.title)}-#{Timex.format!(Time.now(), "{YYYY}-{M}-{D}")}.csv"
 
-      filename =
-        "#{Slug.slugify(section.title)}-#{Timex.format!(Time.now(), "{YYYY}-{M}-{D}")}.csv"
+    conn
+    |> put_resp_content_type("text/csv")
+    |> put_resp_header("content-disposition", "attachment; filename=\"#{filename}\"")
+    |> send_resp(200, gradebook_csv)
+  end
 
-      conn
-      |> put_resp_content_type("text/csv")
-      |> put_resp_header("content-disposition", "attachment; filename=\"#{filename}\"")
-      |> send_resp(200, gradebook_csv)
-    else
-      render(conn, "not_authorized.html")
+  def export_enrollments(conn, %{"section_slug" => section_slug}) do
+    section = Sections.get_section_by_slug(section_slug)
+
+    enrollments_csv_text = build_enrollments_text(Sections.list_enrollments(section.slug))
+    cost = case section do
+      %Section{requires_payment: true, amount: amount} ->
+        {:ok, m} = Money.to_string(amount)
+        m
+      _ -> "Free"
     end
+    discount =
+      case section do
+        %Section{open_and_free: false, blueprint_id: blueprint_id, lti_1p3_deployment: lti_1p3_deployment} ->
+          case Paywall.get_discount_by!(%{
+            section_id: blueprint_id,
+            institution_id: lti_1p3_deployment.institution.id
+          }) do
+            nil ->
+              case Paywall.get_institution_wide_discount!(lti_1p3_deployment.institution.id) do
+                nil -> "N/A"
+                discount -> "By Institution: #{get_discount_string(discount)}"
+              end
+            discount -> "By Product-Institution: #{get_discount_string(discount)}"
+          end
+        _ -> "N/A"
+      end
+
+    csv_text = "Cost: #{cost}\r\nDiscount #{discount}\r\n\r\n" <> enrollments_csv_text
+    filename = "Enrollments-#{Slug.slugify(section.title)}-#{Timex.format!(Time.now(), "{YYYY}-{M}-{D}")}.csv"
+
+    conn
+    |> put_resp_content_type("text/csv")
+    |> put_resp_header("content-disposition", "attachment; filename=\"#{filename}\"")
+    |> send_resp(200, csv_text)
+  end
+
+  defp build_enrollments_text(enrollments) do
+    ([["Student name", "Student email", "Enrolled on"]] ++
+      Enum.map(enrollments, fn record -> [record.user.name, record.user.email, record.inserted_at] end))
+    |> CSV.encode()
+    |> Enum.to_list()
+    |> to_string()
+  end
+
+  defp get_discount_string(%Discount{type: :percentage, percentage: percentage}),
+    do: "#{percentage}%"
+
+  defp get_discount_string(%Discount{type: :fixed_amount, amount: amount}) do
+    {:ok, m} = Money.to_string(amount)
+    m
   end
 
   def is_admin?(conn) do
@@ -718,4 +820,12 @@ defmodule OliWeb.PageDeliveryController do
       date(datetime, conn: conn, precision: :minutes)
     end
   end
+
+  defp url_from_desc(_, _, nil), do: nil
+
+  defp url_from_desc(conn, section_slug, %{"type" => "container", "slug" => slug}),
+    do: Routes.page_delivery_path(conn, :container_preview, section_slug, slug)
+
+  defp url_from_desc(conn, section_slug, %{"type" => "page", "slug" => slug}),
+    do: Routes.page_delivery_path(conn, :page_preview, section_slug, slug)
 end

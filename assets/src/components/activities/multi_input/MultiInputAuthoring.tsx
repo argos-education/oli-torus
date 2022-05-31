@@ -6,7 +6,7 @@ import { HintsTab } from 'components/activities/multi_input/sections/HintsTab';
 import { MultiInputStem } from 'components/activities/multi_input/sections/MultiInputStem';
 import { QuestionTab } from 'components/activities/multi_input/sections/QuestionTab';
 import { Manifest } from 'components/activities/types';
-import { elementsOfType } from 'components/editing/utils';
+import { elementsOfType } from 'components/editing/slateUtils';
 import { TabbedNavigation } from 'components/tabbed_navigation/Tabs';
 import { InputRef } from 'data/content/model/elements/types';
 import React from 'react';
@@ -15,12 +15,9 @@ import { Provider } from 'react-redux';
 import { Editor, Transforms } from 'slate';
 import { ReactEditor } from 'slate-react';
 import { configureStore } from 'state/store';
-import {
-  AuthoringElement,
-  AuthoringElementProps,
-  AuthoringElementProvider,
-  useAuthoringElementContext,
-} from '../AuthoringElement';
+import { AuthoringElement, AuthoringElementProps } from '../AuthoringElement';
+
+import { AuthoringElementProvider, useAuthoringElementContext } from '../AuthoringElementProvider';
 
 const store = configureStore();
 

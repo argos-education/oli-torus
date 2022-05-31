@@ -15,7 +15,9 @@ import {
   getSequenceLineage,
 } from 'apps/delivery/store/features/groups/actions/sequence';
 import { BulkActivityUpdate, bulkEdit } from 'data/persistence/activity';
-import { isEqual } from 'lodash';
+import isEqual from 'lodash/isEqual';
+import flatten from 'lodash/flatten';
+import uniq from 'lodash/uniq';
 import { clone } from 'utils/common';
 import guid from 'utils/guid';
 import {
@@ -144,29 +146,44 @@ export const updateActivityRules = createAsyncThunk(
             }
           })
           .filter((id) => id) as number[];
+
         if (
           !isEqual(
-            childActivityClone.authoring.activitiesRequiredForEvaluation,
-            referencedActivityIds,
+            (childActivityClone.authoring.activitiesRequiredForEvaluation || []).sort(),
+            referencedActivityIds.sort(), // order doesn't matter, don't rewrite just because order may have changed
           )
         ) {
           // console.log('RULE REFS: ', referencedActivityIds);
           childActivityClone.authoring.activitiesRequiredForEvaluation = referencedActivityIds;
+          console.log('UPDATE ACTIVITY REFS REQUIRED FOR EVALUATION', {
+            referencedActivityIds,
+            childActivityClone,
+          });
           activitiesToUpdate.push(childActivityClone);
         }
-        if (
-          !isEqual(
-            childActivityClone.authoring.variablesRequiredForEvaluation,
-            referencedVariableKeys,
-          )
-        ) {
+
+        childActivityClone.authoring.variablesRequiredForEvaluation =
+          childActivityClone.authoring.variablesRequiredForEvaluation || [];
+        const refVarLengthEqual =
+          childActivityClone.authoring.variablesRequiredForEvaluation.length ===
+          referencedVariableKeys.length;
+        const hasAllReferencedVariables =
+          refVarLengthEqual &&
+          referencedVariableKeys.every((rv) =>
+            childActivityClone.authoring.variablesRequiredForEvaluation.includes(rv),
+          );
+        if (!hasAllReferencedVariables) {
           childActivityClone.authoring.variablesRequiredForEvaluation = referencedVariableKeys;
-          console.log('UPDATE VALUES REQUIRED FOR EVALUATION', {
+          childActivityClone.authoring.variablesRequiredForEvaluation = uniq(
+            flatten(childActivityClone.authoring.variablesRequiredForEvaluation),
+          );
+          console.log('UPDATE VARS REQUIRED FOR EVALUATION', {
             referencedVariableKeys,
             childActivityClone,
           });
           activitiesToUpdate.push(childActivityClone);
         }
+
         childActivityClone.authoring.rules = activityRulesClone;
         /* console.log('CLONE RULES', { childActivityClone, childActivity }); */
         if (!isEqual(childActivity.authoring.rules, childActivityClone.authoring.rules)) {

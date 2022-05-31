@@ -3,7 +3,7 @@ defmodule Oli.Utils do
 
   import Ecto.Changeset
 
-  @urlRegex ~r/(https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}|www\.[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}|https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9]+\.[^\s]{2,}|www\.[a-zA-Z0-9]+\.[^\s]{2,})/i
+  @url_regex ~r/(https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}|www\.[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}|https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9]+\.[^\s]{2,}|www\.[a-zA-Z0-9]+\.[^\s]{2,})/i
 
   @doc """
   Generates a random hex string of the given length
@@ -164,6 +164,22 @@ defmodule Oli.Utils do
     end
   end
 
+  def unique_constraint_if(changeset, fields, condition, opts \\ []) do
+    if condition.(changeset) do
+      Ecto.Changeset.unique_constraint(changeset, fields, opts)
+    else
+      changeset
+    end
+  end
+
+  def foreign_key_constraint_if(changeset, field, condition, opts \\ []) do
+    if condition.(changeset) do
+      Ecto.Changeset.foreign_key_constraint(changeset, field, opts)
+    else
+      changeset
+    end
+  end
+
   def validate_dates_consistency(changeset, start_date_field, end_date_field) do
     validate_change(changeset, start_date_field, fn _, field ->
       # check if the start date is after the end date
@@ -277,7 +293,7 @@ defmodule Oli.Utils do
   Detects all urls in a string and replaces them with hyperlinks.
   """
   def find_and_linkify_urls_in_string(string) do
-    Regex.replace(@urlRegex, string, fn _, url ->
+    Regex.replace(@url_regex, string, fn _, url ->
       absolute_url =
         if is_url_absolute(url) do
           url
@@ -288,5 +304,4 @@ defmodule Oli.Utils do
       "<a href=\"#{absolute_url}\" target=\"_blank\">#{url}</a>"
     end)
   end
-
 end

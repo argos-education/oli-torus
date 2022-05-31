@@ -2,11 +2,12 @@ defmodule Oli.Factory do
   use ExMachina.Ecto, repo: Oli.Repo
 
   alias Oli.Accounts.{Author, User}
-  alias Oli.Authoring.Course.{Family, Project, ProjectVisibility}
+  alias Oli.Authoring.Course.{Family, Project, ProjectVisibility, ProjectResource}
   alias Oli.Branding.Brand
   alias Oli.Delivery.Attempts.Core.{ActivityAttempt, PartAttempt, ResourceAccess, ResourceAttempt}
   alias Oli.Delivery.Gating.GatingCondition
   alias Oli.Delivery.Snapshots.Snapshot
+  alias Oli.Lti.LtiParams
 
   alias Oli.Delivery.Sections.{
     Enrollment,
@@ -16,9 +17,11 @@ defmodule Oli.Factory do
     SectionInvite
   }
 
-  alias Oli.Delivery.Paywall.Payment
+  alias Oli.Delivery.Paywall.{Discount, Payment}
   alias Oli.Groups.{Community, CommunityAccount, CommunityInstitution, CommunityVisibility}
   alias Oli.Institutions.{Institution, SsoJwk}
+  alias Oli.Inventories.Publisher
+  alias Oli.Lti.Tool.{Deployment, Registration}
   alias Oli.Notifications.SystemMessage
   alias Oli.Publishing.{Publication, PublishedResource}
   alias Oli.Resources.{Resource, Revision}
@@ -96,12 +99,13 @@ defmodule Oli.Factory do
   def project_factory() do
     %Project{
       description: "Example description",
-      title: "Example Course",
+      title: sequence("Example Course"),
       slug: sequence("examplecourse"),
       version: "1",
       family: insert(:family),
       visibility: :global,
-      authors: insert_list(2, :author)
+      authors: insert_list(2, :author),
+      publisher: insert(:publisher)
     }
   end
 
@@ -144,18 +148,22 @@ defmodule Oli.Factory do
   end
 
   def section_factory() do
+    deployment = insert(:lti_deployment)
+
     %Section{
-      title: "Section",
+      title: sequence("Section"),
       timezone: "America/New_York",
       registration_open: true,
       context_id: UUID.uuid4(),
-      institution: insert(:institution),
+      institution: deployment.institution,
       base_project: insert(:project),
       slug: sequence("examplesection"),
       type: :blueprint,
       open_and_free: false,
       description: "A description",
-      brand: insert(:brand)
+      brand: insert(:brand),
+      publisher: insert(:publisher),
+      lti_1p3_deployment: deployment
     }
   end
 
@@ -184,6 +192,16 @@ defmodule Oli.Factory do
     }
   end
 
+  def discount_factory() do
+    %Discount{
+      type: :percentage,
+      percentage: 10,
+      amount: nil,
+      section: insert(:section),
+      institution: insert(:institution)
+    }
+  end
+
   def institution_factory() do
     %Institution{
       name: sequence("Example Institution"),
@@ -191,6 +209,26 @@ defmodule Oli.Factory do
       institution_email: "ins@example.edu",
       institution_url: "example.edu",
       timezone: "America/New_York"
+    }
+  end
+
+  def lti_deployment_factory() do
+    %Deployment{
+      deployment_id: sequence("deployment_id"),
+      registration: insert(:lti_registration),
+      institution: insert(:institution)
+    }
+  end
+
+  def lti_registration_factory() do
+    %Registration{
+      auth_login_url: "some auth_login_url",
+      auth_server: "some auth_server",
+      auth_token_url: "some auth_token_url",
+      client_id: sequence("some client_id"),
+      issuer: "some issuer",
+      key_set_url: "some key_set_url",
+      tool_jwk_id: nil
     }
   end
 
@@ -230,7 +268,8 @@ defmodule Oli.Factory do
     %SectionResource{
       project: insert(:project),
       section: insert(:section),
-      resource_id: insert(:resource).id
+      resource_id: insert(:resource).id,
+      slug: sequence("some_slug")
     }
   end
 
@@ -244,6 +283,13 @@ defmodule Oli.Factory do
 
   def resource_factory() do
     %Resource{}
+  end
+
+  def project_resource_factory() do
+    %ProjectResource{
+      project_id: insert(:project).id,
+      resource_id: insert(:resource).id
+    }
   end
 
   def gating_condition_factory() do
@@ -384,6 +430,29 @@ defmodule Oli.Factory do
       user: insert(:user),
       section: insert(:section),
       resource: insert(:resource)
+    }
+  end
+
+  def lti_params_factory() do
+    %LtiParams{
+      issuer: sequence("issuer"),
+      client_id: sequence("client_id"),
+      deployment_id: sequence("deployment_id"),
+      context_id: sequence("context_id"),
+      sub: sequence("sub"),
+      params: %{},
+      exp: DateTime.add(DateTime.utc_now(), 3600)
+    }
+  end
+
+  def publisher_factory() do
+    %Publisher{
+      name: sequence("Publisher"),
+      email: "#{sequence("publisher")}@example.education",
+      address: "Publisher Address",
+      main_contact: "Publisher Contact",
+      website_url: "mypublisher.com",
+      default: false
     }
   end
 end

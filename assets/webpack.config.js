@@ -7,6 +7,7 @@ const CopyWebpackPlugin = require('copy-webpack-plugin');
 const MonacoWebpackPlugin = require('monaco-editor-webpack-plugin');
 
 const MONACO_DIR = path.resolve(__dirname, './node_modules/monaco-editor');
+const SHADOW_DOM_ENABLED = [path.resolve(__dirname, './src/components/parts/janus-fill-blanks')];
 
 // Determines the entry points for the webpack by looking at activity
 // implementations in src/components/activities folder
@@ -14,6 +15,7 @@ const populateEntries = () => {
   // These are the non-activity bundles
   const initialEntries = {
     app: ['babel-polyfill', './src/phoenix/app.ts'],
+    components: ['./src/apps/Components.tsx'],
     pageeditor: ['./src/apps/PageEditorApp.tsx'],
     activitybank: ['./src/apps/ActivityBankApp.tsx'],
     authoring: ['./src/apps/AuthoringApp.tsx'],
@@ -62,7 +64,7 @@ const populateEntries = () => {
       .map((p) => ({ prefix: 'delivery_', themePath: p })),
     ...glob
       .sync('./styles/themes/delivery/adaptive_themes/*/light.scss')
-      .map((p) => ({ prefix: 'delivery_adaptive_themes_', themePath: p })),
+      .map((p) => ({ prefix: 'delivery_adaptive_themes_default_', themePath: p })),
     ...glob
       .sync('./styles/themes/preview/*.scss')
       .map((p) => ({ prefix: 'preview_', themePath: p })),
@@ -177,7 +179,31 @@ module.exports = (env, options) => ({
       },
       {
         test: /\.[s]?css$/,
+        include: SHADOW_DOM_ENABLED,
+        use: [
+          MiniCssExtractPlugin.loader,
+          {
+            loader: 'css-loader',
+            options: {
+              sourceMap: true,
+            },
+          },
+          {
+            loader: 'sass-loader',
+            options: {
+              sassOptions: {
+                includePaths: [path.join(__dirname, 'styles')],
+                quietDeps: true,
+              },
+              sourceMap: true,
+            },
+          },
+        ],
+      },
+      {
+        test: /\.[s]?css$/,
         include: path.resolve(__dirname, 'src'),
+        exclude: SHADOW_DOM_ENABLED,
         use: [
           'style-loader',
           {

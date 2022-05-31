@@ -1,5 +1,5 @@
-import { useDeliveryElementContext } from 'components/activities/DeliveryElement';
-import { HasStem, Stem } from 'components/activities/types';
+import { useDeliveryElementContext } from 'components/activities/DeliveryElementProvider';
+import { HasStem, Stem, HasContent } from 'components/activities/types';
 import { WriterContext } from 'data/content/writers/context';
 import { HtmlContentModelRenderer } from 'data/content/writers/renderer';
 import React from 'react';

@@ -18,6 +18,30 @@ defmodule Oli.Publishing do
   alias Oli.Delivery.Sections.Blueprint
   alias Oli.Groups
 
+  @doc """
+  Returns true if editing this revision requires the creation of a new revision first.
+
+  A new revision is needed if there exists either:
+  1. A published resource record with this revision ID that pertains to a published publication for this project
+  2. A published resource record with this revision ID for a publication (published or not) for any other project.
+
+  """
+  def needs_new_revision_for_edit?(project_slug, resource_revision_id) do
+    query =
+      from pr in PublishedResource,
+        join: pub in Publication,
+        on: pr.publication_id == pub.id,
+        join: proj in Project,
+        on: proj.id == pub.project_id,
+        where:
+          (proj.slug != ^project_slug or
+             (proj.slug == ^project_slug and not is_nil(pub.published))) and
+            pr.revision_id == ^resource_revision_id,
+        select: count(pr.id)
+
+    Repo.one(query) > 0
+  end
+
   def get_publication_id_for_resource(section_slug, resource_id) do
     spp =
       from(s in Section,
@@ -249,7 +273,9 @@ defmodule Oli.Publishing do
     from(
       project in Project,
       left_join: section in Section,
-      on: project.id == section.base_project_id and section.type == :blueprint,
+      on:
+        project.id == section.base_project_id and section.type == :blueprint and
+          section.status == :active,
       join: last_publication in subquery(last_publication_query()),
       on:
         last_publication.project_id == project.id or
@@ -565,15 +591,22 @@ defmodule Oli.Publishing do
       when is_list(publication_ids) do
     preload = Keyword.get(opts, :preload, [:resource, :revision, :publication])
 
-    from(pr in PublishedResource,
-      where: pr.publication_id in ^publication_ids,
-      preload: ^preload
-    )
+    PublishedResource
+    |> where([pr], pr.publication_id in ^publication_ids)
+    |> maybe_preload(preload)
     |> Repo.all()
   end
 
   def get_published_resources_by_publication(publication_id, opts) do
     get_published_resources_by_publication([publication_id], opts)
+  end
+
+  defp maybe_preload(query, preload) do
+    Enum.reduce(preload, query, fn rel_table, acc_query ->
+      acc_query
+      |> join(:left, [pr, ...], rel in assoc(pr, ^rel_table))
+      |> preload([pr, ..., rel], [{^rel_table, rel}])
+    end)
   end
 
   @doc """

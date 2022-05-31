@@ -36,6 +36,7 @@ defmodule Oli.Delivery.Sections.Section do
 
     field(:visibility, Ecto.Enum, values: [:selected, :global], default: :global)
     field(:requires_payment, :boolean, default: false)
+    field(:pay_by_institution, :boolean, default: false)
     field(:amount, Money.Ecto.Map.Type)
     field(:has_grace_period, :boolean, default: true)
     field(:grace_period_days, :integer)
@@ -52,6 +53,7 @@ defmodule Oli.Delivery.Sections.Section do
 
     field(:resource_gating_index, :map, default: %{}, null: false)
     field(:previous_next_index, :map, default: nil, null: true)
+    field(:display_curriculum_item_numbering, :boolean, default: true)
 
     belongs_to(:lti_1p3_deployment, Oli.Lti.Tool.Deployment, foreign_key: :lti_1p3_deployment_id)
 
@@ -89,8 +91,11 @@ defmodule Oli.Delivery.Sections.Section do
     field(:enrollments_count, :integer, virtual: true)
     field(:total_count, :integer, virtual: true)
     field(:institution_name, :string, virtual: true)
+    field(:instructor_name, :string, virtual: true)
 
     many_to_many(:communities, Oli.Groups.Community, join_through: Oli.Groups.CommunityVisibility)
+
+    belongs_to(:publisher, Oli.Inventories.Publisher)
 
     timestamps(type: :utc_datetime)
   end
@@ -114,6 +119,7 @@ defmodule Oli.Delivery.Sections.Section do
       :passcode,
       :visibility,
       :requires_payment,
+      :pay_by_institution,
       :amount,
       :has_grace_period,
       :grace_period_days,
@@ -132,7 +138,9 @@ defmodule Oli.Delivery.Sections.Section do
       :blueprint_id,
       :root_section_resource_id,
       :requires_enrollment,
-      :skip_email_verification
+      :skip_email_verification,
+      :publisher_id,
+      :display_curriculum_item_numbering
     ])
     |> validate_required([
       :type,
@@ -143,6 +151,8 @@ defmodule Oli.Delivery.Sections.Section do
     ])
     |> validate_required_if([:amount], &requires_payment?/1)
     |> validate_required_if([:grace_period_days], &has_grace_period?/1)
+    |> validate_required_if([:publisher_id], &is_product?/1)
+    |> foreign_key_constraint_if(:publisher_id, &is_product?/1)
     |> validate_positive_grace_period()
     |> Oli.Delivery.Utils.validate_positive_money(:amount)
     |> validate_dates_consistency(:start_date, :end_date)
@@ -163,7 +173,7 @@ defmodule Oli.Delivery.Sections.Section do
     end)
   end
 
-  def requires_payment?(changeset) do
+  defp requires_payment?(changeset) do
     case changeset do
       %Ecto.Changeset{valid?: true} = changeset ->
         get_field(changeset, :requires_payment)
@@ -173,10 +183,20 @@ defmodule Oli.Delivery.Sections.Section do
     end
   end
 
-  def has_grace_period?(changeset) do
+  defp has_grace_period?(changeset) do
     case changeset do
       %Ecto.Changeset{valid?: true} = changeset ->
         get_field(changeset, :has_grace_period) and get_field(changeset, :requires_payment)
+
+      _ ->
+        false
+    end
+  end
+
+  defp is_product?(changeset) do
+    case changeset do
+      %Ecto.Changeset{valid?: true} = changeset ->
+        get_field(changeset, :type) == :blueprint
 
       _ ->
         false

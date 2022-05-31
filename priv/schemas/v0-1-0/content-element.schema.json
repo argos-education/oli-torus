@@ -78,6 +78,9 @@
         },
         {
           "$ref": "#/$defs/input-ref"
+        },
+        {
+          "$ref": "#/$defs/image-inline"
         }
       ]
     },
@@ -352,6 +355,9 @@
           "$ref": "#/$defs/image"
         },
         {
+          "$ref": "#/$defs/image-inline"
+        },
+        {
           "$ref": "#/$defs/youtube"
         },
         {
@@ -372,18 +378,56 @@
           "type": "string"
         },
         "height": {
-          "type":  ["string", "number"]
+          "type": [
+            "string",
+            "number"
+          ]
         },
         "width": {
-          "type": ["string", "number"]
+          "type": [
+            "string",
+            "number"
+          ]
         },
         "alt": {
           "type": "string"
         },
         "caption": {
-          "type": "string"
+          "type": [
+            "string",
+            "array"
+          ]
         },
         "display": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "type"
+      ]
+    },
+    "image-inline": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "img_inline"
+        },
+        "src": {
+          "type": "string"
+        },
+        "height": {
+          "type": [
+            "string",
+            "number"
+          ]
+        },
+        "width": {
+          "type": [
+            "string",
+            "number"
+          ]
+        },
+        "alt": {
           "type": "string"
         }
       },
@@ -401,16 +445,25 @@
           "type": "string"
         },
         "height": {
-          "type": "string"
+          "type": [
+            "string",
+            "number"
+          ]
         },
         "width": {
-          "type": "string"
+          "type": [
+            "string",
+            "number"
+          ]
         },
         "alt": {
           "type": "string"
         },
         "caption": {
-          "type": "string"
+          "type": [
+            "string",
+            "array"
+          ]
         },
         "display": {
           "type": "string"
@@ -433,7 +486,10 @@
           "type": "string"
         },
         "caption": {
-          "type": "string"
+          "type": [
+            "string",
+            "array"
+          ]
         }
       },
       "required": [
@@ -447,19 +503,28 @@
           "const": "iframe"
         },
         "src": {
-          "type": "string"
+          "type": ["string", "number"]
         },
         "height": {
-          "type": "string"
+          "type": [
+            "string",
+            "number"
+          ]
         },
         "width": {
-          "type": "string"
+          "type": [
+            "string",
+            "number"
+          ]
         },
         "alt": {
           "type": "string"
         },
         "caption": {
-          "type": "string"
+          "type": [
+            "string",
+            "array"
+          ]
         },
         "display": {
           "type": "string"
@@ -476,7 +541,10 @@
           "const": "table"
         },
         "caption": {
-          "type": "string"
+          "type": [
+            "string",
+            "array"
+          ]
         },
         "children": {
           "type": "array",
@@ -600,7 +668,10 @@
           "type": "string"
         },
         "caption": {
-          "type": "string"
+          "type": [
+            "string",
+            "array"
+          ]
         },
         "children": {
           "type": "array",
@@ -646,7 +717,10 @@
           "type": "string"
         },
         "caption": {
-          "type": "string"
+          "type": [
+            "string",
+            "array"
+          ]
         }
       },
       "required": [

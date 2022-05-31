@@ -3,6 +3,7 @@ defmodule OliWeb.ProductControllerTest do
 
   use OliWeb.ConnCase
 
+  alias Oli.Inventories
   alias Oli.Seeder
 
   describe "index" do
@@ -13,6 +14,8 @@ defmodule OliWeb.ProductControllerTest do
       api_key: api_key,
       map: map
     } do
+      publisher_id = Inventories.default_publisher().id
+
       prod1 = map.prod1
       prod2 = map.prod2
 
@@ -32,9 +35,11 @@ defmodule OliWeb.ProductControllerTest do
                  "grace_period_strategy" => Atom.to_string(prod1.grace_period_strategy),
                  "has_grace_period" => prod1.has_grace_period,
                  "requires_payment" => prod1.requires_payment,
+                 "pay_by_institution" => prod1.pay_by_institution,
                  "slug" => prod1.slug,
                  "status" => Atom.to_string(prod1.status),
-                 "title" => prod1.title
+                 "title" => prod1.title,
+                 "publisher_id" => publisher_id
                }
              end)
 
@@ -47,9 +52,11 @@ defmodule OliWeb.ProductControllerTest do
                  "grace_period_strategy" => Atom.to_string(prod2.grace_period_strategy),
                  "has_grace_period" => prod2.has_grace_period,
                  "requires_payment" => prod2.requires_payment,
+                 "pay_by_institution" => prod1.pay_by_institution,
                  "slug" => prod2.slug,
                  "status" => Atom.to_string(prod2.status),
-                 "title" => prod2.title
+                 "title" => prod2.title,
+                 "publisher_id" => publisher_id
                }
              end)
     end
