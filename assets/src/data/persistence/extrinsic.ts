@@ -14,23 +14,13 @@ export type ExtrinsicDelete = {
   result: 'success';
 };
 
-const setQ = new Set();
-const lastSet = () => {
-  const arr = Array.from(setQ);
-  return arr[arr.length - 1];
-};
-
 export function readGlobal(keys: string[] | null = null) {
   const params = {
     method: 'GET',
     url: '/state' + toKeyParams(keys),
   };
 
-  const result = makeRequest<ExtrinsicRead>(params);
-
-  /* console.log('GET DATA FROM STATE', { keys, params, result }); */
-
-  return result;
+  return makeRequest<ExtrinsicRead>(params);
 }
 
 export const readGlobalUserState = async (
@@ -49,9 +39,6 @@ export const readGlobalUserState = async (
       result = storedUserState;
     }
   } else {
-    if (lastSet()) {
-      await lastSet();
-    }
     const serverUserState = await readGlobal(keys);
     // merge server state with result
     if ((serverUserState as any).type !== 'ServerError') {
@@ -85,10 +72,7 @@ export const internalUpdateGlobalUserState = async (
 
     localStorage.setItem('torus.userState', JSON.stringify(mergedState));
   } else {
-    const op = upsertGlobal(newState);
-    setQ.add(op);
-    await op;
-    setQ.delete(op);
+    await upsertGlobal(newState);
   }
   return newState;
 };
@@ -122,11 +106,7 @@ export function upsertGlobal(keyValues: KeyValues) {
     url: '/state',
   };
 
-  const result = makeRequest<ExtrinsicDelete>(params);
-
-  /* console.log('UPSERT DATA TO STATE', { params, result }); */
-
-  return result;
+  return makeRequest<ExtrinsicDelete>(params);
 }
 
 export function readSection(slug: SectionSlug, keys: string[] | null = null) {
